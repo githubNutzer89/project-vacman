@@ -47,13 +47,42 @@ public class GameScreen extends Screen{
 	public void render(Graphics g, float deltaTime) {
 		// TODO Auto-generated method stub
 		g.setColor(Color.RED);
-		g.drawRect(convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), 68, 68);
-		g.drawRect(convertX(world.ghost.getPosX()), convertY(world.ghost.getPosY()), 68, 68);
-		if(!world.coin.isCollected()) {
-			g.drawRect(convertX(world.coin.getPosX()), convertY(world.coin.getPosY()), 68, 68);
+		//g.drawRect(convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), 68, 68);
+		
+		switch(world.vacMan.getDirection()) {
+			case UP:
+				g.drawImage(Assets.vacman_up, 
+						convertX(world.vacMan.posX), convertY(world.vacMan.posY), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
+						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+				break;
+			case RIGHT:
+				g.drawImage(Assets.vacman_right, 
+						convertX(world.vacMan.posX), convertY(world.vacMan.posY), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
+						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+				break;
+			case DOWN:
+				g.drawImage(Assets.vacman_down, 
+						convertX(world.vacMan.posX), convertY(world.vacMan.posY), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
+						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+				break;
+			case LEFT:
+				g.drawImage(Assets.vacman_left, 
+						convertX(world.vacMan.posX), convertY(world.vacMan.posY), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
+						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+				break;
 		}
+				
+		//g.drawRect(convertX(world.ghost.getPosX()), convertY(world.ghost.getPosY()), 68, 68);
+		
+		for(Coin coin : world.coins) {
+			if(!coin.isCollected()) {
+				g.drawImage(Assets.coin, 
+						convertX(coin.posX), convertY(coin.posY), convertX(coin.getPosX() + Coin.DIMENSION_X), convertY(coin.getPosY() + Coin.DIMENSION_Y), 
+						0, 0, Assets.coin.getWidth(), Assets.coin.getHeight(), null);
+			}
+		}
+		
 		for(WallPart wallPart : world.wallParts) {
-			//g.drawRect(Math.round(convertX(wallPart.getPosX())), convertY(wallPart.getPosY()), 68, 68);
 			g.drawImage(Assets.wallPart, 
 					convertX(wallPart.posX), convertY(wallPart.posY), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
 					0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);

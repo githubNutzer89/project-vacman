@@ -16,6 +16,12 @@ public class LoadingScreen extends Screen{
 	public void update(float deltaTime) {
 		try {
 			Assets.wallPart = ImageIO.read(new File("img/wallPart.png"));
+			Assets.lvl1 = ImageIO.read(new File("img/lvl1.png"));
+			Assets.coin = ImageIO.read(new File("img/coin.png"));
+			Assets.vacman_right = ImageIO.read(new File("img/vacman_right.png"));
+			Assets.vacman_left = ImageIO.read(new File("img/vacman_left.png"));
+			Assets.vacman_up = ImageIO.read(new File("img/vacman_up.png"));
+			Assets.vacman_down = ImageIO.read(new File("img/vacman_down.png"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
