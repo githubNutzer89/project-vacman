@@ -71,7 +71,13 @@ public class GameScreen extends Screen{
 						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
 				break;
 		}
-				
+		
+		for(Ghost ghost : world.ghosts) {
+			g.drawImage(Assets.vacman_up, 
+					convertX(ghost.posX), convertY(ghost.posY), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+		}
+		
 		//g.drawRect(convertX(world.ghost.getPosX()), convertY(world.ghost.getPosY()), 68, 68);
 		
 		for(Coin coin : world.coins) {

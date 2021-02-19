@@ -5,6 +5,8 @@ import java.awt.image.BufferedImage;
 
 public class Assets {
     public static BufferedImage wallPart;
+    public static BufferedImage wallPartRed;
+    public static BufferedImage mainMenu;
     public static BufferedImage lvl1;
     public static BufferedImage coin;
     public static BufferedImage vacman_up;

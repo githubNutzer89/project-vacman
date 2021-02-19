@@ -54,20 +54,20 @@ public class Ghost extends GameObject{
 			
 			//int randomDir = rnd.nextInt(4);
 			
-			switch(rnd.nextInt(4)) {
-				case 0:
-					direction = Direction.LEFT;
-					break;
-				case 1:
-					direction = Direction.UP;
-					break;
-				case 2:
-					direction = Direction.RIGHT;
-					break;
-				case 3:
-					direction = Direction.DOWN;
-					break;
-			}
+//			switch(rnd.nextInt(4)) {
+//				case 0:
+//					direction = Direction.LEFT;
+//					break;
+//				case 1:
+//					direction = Direction.UP;
+//					break;
+//				case 2:
+//					direction = Direction.RIGHT;
+//					break;
+//				case 3:
+//					direction = Direction.DOWN;
+//					break;
+//			}
 		}
 	}
 }

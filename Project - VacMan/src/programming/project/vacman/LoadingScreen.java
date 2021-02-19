@@ -16,6 +16,8 @@ public class LoadingScreen extends Screen{
 	public void update(float deltaTime) {
 		try {
 			Assets.wallPart = ImageIO.read(new File("img/wallPart.png"));
+			Assets.wallPartRed = ImageIO.read(new File("img/wallPartRed.png"));
+			Assets.mainMenu = ImageIO.read(new File("img/main_menu.png"));
 			Assets.lvl1 = ImageIO.read(new File("img/lvl1.png"));
 			Assets.coin = ImageIO.read(new File("img/coin.png"));
 			Assets.vacman_right = ImageIO.read(new File("img/vacman_right.png"));
@@ -27,7 +29,7 @@ public class LoadingScreen extends Screen{
 			e.printStackTrace();
 		}
 		
-		game.setScreen(new GameScreen(game));
+		game.setScreen(new MenuScreen(game));
 	}
 
 	@Override

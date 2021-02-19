@@ -2,43 +2,23 @@ package programming.project.vacman;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class World {
 	public static final int WORLD_WIDTH = 28;
 	public static final int WORLD_HEIGHT = 14;
 	
+	public int points;
+	
 	public VacMan vacMan;
-	public Coin coin;
-	//public Ghost ghost;
 	public ArrayList<WallPart> wallParts;
 	public ArrayList<Coin> coins;
-	
-	private enum BLOCK_TYPE {
-		WALL(0, 0, 0), // black
-		COIN(255, 255, 0), // yellow
-		VACMAN(255, 0, 0), // red
-		GHOST_SPAWNPOINT(0, 255, 0), // green
-		ITEM_GOLD_COINGHOST_GATE(0, 0, 255); // blue
-
-		private int color;
-
-		private BLOCK_TYPE (int r, int g, int b) {
-			color = 0xff << 24 | r << 16 | g << 8 | b << 0;
-		}
-
-		public boolean sameColor (int color) {
-			return this.color == color;
-		}
-
-		public int getColor () {
-			return color;
-		}
-	}
+	public ArrayList<Ghost> ghosts;
 	
 	public World() {
 		wallParts = new ArrayList<WallPart>();
 		coins = new ArrayList<Coin>();
-		vacMan = VacMan.getInstance();
+		ghosts = new ArrayList<Ghost>();
 		//coin = new Coin();
 		//ghost = new Ghost();
 		
@@ -47,9 +27,6 @@ public class World {
 	
 	public void init() {
 		int rgb = 0;
-		
-		vacMan.setPos(1, 1);
-		//ghost.setPos(10, 10);
 		
 		for(int i=0; i<WORLD_WIDTH; i++) {
 			for(int j=0; j<WORLD_HEIGHT; j++) {
@@ -74,21 +51,107 @@ public class World {
 					vacMan = VacMan.getInstance();
 					vacMan.setPos(i, j);
 				}
+				
+				//Ghosts
+				if(BLOCK_TYPE.GHOST_SPAWNPOINT.sameColor(rgb)) {
+					Ghost ghost = new Ghost();
+					ghost.setPos(i, j);
+					ghosts.add(ghost);
+				}
 			}
 		}
 	}
 	
 	public void update(float deltaTime) {
-		//ghost.advance(deltaTime);
+		int blockedWays = 0;
+		
+		int posGhostX = 0;
+		int posGhostY = 0;
+		
+		boolean corners[] = new boolean[4];
+		boolean isCorner = false;
+		
+		for(Ghost ghost : ghosts) {
+			posGhostX = (int ) ghost.getPosX();
+			posGhostY = (int ) ghost.getPosY();
+			
+			for(WallPart wallPart : wallParts) {
+				if(wallPart.getPosX() == posGhostX - 1 && wallPart.getPosY() == posGhostY){
+					corners[0] = true;
+					blockedWays++;
+				}
+				
+				if(wallPart.getPosX() == posGhostX && wallPart.getPosY() == posGhostY - 1) {
+					corners[1] = true;
+					blockedWays++;
+				}
+				
+				if(wallPart.getPosX() == posGhostX + 1 && wallPart.getPosY() == posGhostY) {
+					corners[2] = true;
+					blockedWays++;
+				}
+				
+				if(wallPart.getPosX() == posGhostX && wallPart.getPosY() == posGhostY + 1) {
+					corners[3] = true;
+					blockedWays++;
+				}					
+			}
+		
+			boolean lastHit = false;
+			
+			//Corner?
+			for(int i=0; i<4; i++) {
+				if(lastHit == corners[i]) {
+					isCorner = true;
+				}
+				lastHit = corners[i];
+			}
+			
+			switch(blockedWays) {
+				case 1:
+				case 3:
+					moveRandomly(ghost, deltaTime);
+				case 2:
+					if(!isCorner) {
+						ghost.advance(deltaTime);
+					}else {
+						moveRandomly(ghost, deltaTime);
+					}
+					
+					break;
+			}
+		}
 		
 		for(WallPart wallPart : wallParts) {
 			vacMan.isCollidated(wallPart);
-			//ghost.isCollidated(wallPart);
+			
+			for(Ghost ghost : ghosts) {
+				ghost.isCollidated(wallPart);
+			}
 		}
 		
 		for(Coin coin : coins) {
 			coin.isCollidated(vacMan);
 			//vacMan.isCollidated(coin);
+		}
+	}
+	
+	private void moveRandomly(GameObject gameObject, float deltaTime) {
+		int rndNumber = (new Random()).nextInt(4);
+		
+		switch(rndNumber) {
+			case 0:
+				gameObject.moveUp(deltaTime);
+				break;
+			case 1:
+				gameObject.moveRight(deltaTime);
+				break;
+			case 2:
+				gameObject.moveDown(deltaTime);
+				break;
+			case 3:
+				gameObject.moveLeft(deltaTime);
+				break;
 		}
 	}
 }
