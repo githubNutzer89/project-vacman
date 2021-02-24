@@ -1,11 +1,15 @@
 package programming.project.vacman;
 
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 
+/* File: Assets.java
+ * -----------------------
+ * This class holds static references to all assets used in the game. 
+ */
 public class Assets {
     public static BufferedImage wallPart;
     public static BufferedImage wallPartRed;
+    public static BufferedImage wallPartGate;
     public static BufferedImage mainMenu;
     public static BufferedImage lvl1;
     public static BufferedImage coin;

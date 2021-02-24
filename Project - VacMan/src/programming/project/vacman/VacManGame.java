@@ -1,102 +1,138 @@
 package programming.project.vacman;
 
+import programming.project.vacman.screens.LoadingScreen;
+import programming.project.vacman.screens.Screen;
+
+/* File: VacManGame.java
+ * -----------------------
+ * This class represents the entry point of the program. It contains the main-method and the game loop. The game loop is
+ * an infinite running loop where the data model is permanently updated and drawn. Furthermore this class holds references
+ * to {@code KeyboardInput}, the {@code Screen} and the {@code Renderer}. A reference of {@code VacManGame} is passed
+ * to each new screen created so every screen is able to draw, react on keyboard inputs and change the current screen to
+ * another one. 
+ */
 public class VacManGame {
-	private KeyboardInput input;
-	private Screen screen;
-	//private VacManController controller;
-	private VacManRenderer renderer;
-	//private Audio audio;
-	//private FileIO fileIO;
+	/*
+	 * A reference to check for keyboard inputs.
+	 */
+	private KeyboardInputManager input;
 	
-	private volatile boolean running;
+	/*
+	 * Holds the {@code Screen} currently displayed.
+	 */
+	private Screen screen;
+	
+	/*
+	 * The {@code Renderer} which draws on the display.
+	 */
+	private Renderer renderer;
+	//private Audio audio;
+	
+	/*
+	 * Determines if the game is running or not.
+	 */
+	private volatile boolean isRunning;
 
-	  public VacManGame() {
-		  input = new KeyboardInput();
-		  renderer = new VacManRenderer(this);
-		  screen = new LoadingScreen(this);
+	/**
+	 * Initializes a newly created VacManGame object. The necessary references to handle keyboard input,
+	 * rendering and screen management are created. Furthermore the game loop is started. 
+	 * 
+	 */
+	public VacManGame() {
+		input = new KeyboardInputManager();			//to handle keyboard input
+		renderer = new Renderer(this);			//to draw on the display
+		screen = new LoadingScreen(this);		//first screen shown is the LoadingScreen
 		  
-		  running = true;
+		isRunning = true;						//set game loop running
 		  
-		  startGameLoop();
-		  //controller = new VacManController(this);
-		  
-		  //controller.start();
-	  }
+		startGameLoop();						//start the game loop
+	}
 	  
-	  public void startGameLoop() {
-			long startTime = System.nanoTime();
-			
-			while(running) {
-				float deltaTime = (System.nanoTime()-startTime) / 1000000000.0f;
-	            startTime = System.nanoTime();
+	/**
+	 * Starts the game loop and calculates the {@code deltaTime}. The {@code deltaTime} is the time between two frames and used
+	 * to ensure motion of game objects independently from the refresh rate of the computer system.
+	 */
+	private void startGameLoop() {
+		long startTime = System.nanoTime();											//current time
 
-	            getCurrentScreen().update(deltaTime);
-	            renderer.render(deltaTime);
-			}
+		while (isRunning) {
+			float deltaTime = (System.nanoTime() - startTime) / 1000000000.0f;		//deltaTime = current time - time of the last frame
+			startTime = System.nanoTime();											//reset startTime
+
+			getCurrentScreen().update(deltaTime);									//update the data model of the current screen
+			renderer.render(deltaTime);												//draw the data model of the current screen
 		}
-	        
-	  public Screen getCurrentScreen() { return screen; }
-	  
-	  public void setScreen(Screen screen) { 
-		  if (screen == null) throw new
-		  	IllegalArgumentException("Screen must not be null");
-		  
-		  this.screen.pause(); 
-		  this.screen.dispose(); 
-		  screen.resume();
-		  
-		  screen.update(0); 
-		  this.screen = screen; 
-	  }
-	  
-	  public KeyboardInput getInput() { return input; }
-	  
-	  public VacManRenderer getRenderer() { return renderer; }
-	        
-	  //public FileIO getFileIO() { return fileIO; }
-	  
-	  //public Audio getAudio() { return audio; }
-	  
-	  public void close() {
-		  running = false;
-		  screen.pause();
-		  screen.dispose();
-		  
-		  System.exit( 0 );
-	  }
-	  
-	  public static void main( String[] args ) {
-	    VacManGame app = new VacManGame();
-
-	    System.exit( 0 );
-	  }
 	}
 
+	/*
+	 * Sets a new {@code Screen}.
+	 * 
+	 * @param screen The new screen to be displayed.
+	 * 
+	 * @throws IllegalArgumentException if {@code screen == null}
+	 */
+	public void setScreen(Screen screen) {
+		if (screen == null)
+			throw new IllegalArgumentException("Screen must not be null");
+
+		//TODO Check if all the different states a screen can be in are really necessary (asses at the the end of the project).
+		this.screen.pause();
+		this.screen.dispose();
+		screen.resume();
+
+		screen.update(0);		//Do a first update to initialize the screen
+		this.screen = screen;	//Set screen as the current one
+	}
 
 	/*
-	 * public class VacManGame extends GraphicsProgram { private
-	 * AndroidFastRenderView renderView; private Graphics graphics; private Audio
-	 * audio; private Input input; private FileIO fileIO; private Screen screen;
+	 * Returns the reference to the current {@Screen}.
 	 * 
-	 * @Override public void run() { renderView = new AndroidFastRenderView(this,
-	 * frameBuffer); graphics = new AndroidGraphics(getAssets(), frameBuffer);
-	 * fileIO = new AndroidFileIO(this); audio = new AndroidAudio(this); input = new
-	 * AndroidInput(this, renderView, scaleX, scaleY); screen = getStartScreen();
-	 * setContentView(renderView); }
-	 * 
-	 * public Input getInput() { return input; }
-	 * 
-	 * public FileIO getFileIO() { return fileIO; }
-	 * 
-	 * public Graphics getGraphics() { return graphics; }
-	 * 
-	 * public Audio getAudio() { return audio; }
-	 * 
-	 * 
-	 * public Screen getCurrentScreen() { return screen; }
-	 * 
-	 * public static void main(String[] args) { new VacManGame().start(); }
-	 * 
-	 * }
+	 * @return reference to the current {@Screen}.
 	 */
+	public Screen getCurrentScreen() {
+		return screen;
+	}
+	
+	/*
+	 * Returns the reference to {@KeyboardInput}.
+	 * 
+	 * @return reference to {@KeyboardInput}.
+	 */
+	public KeyboardInputManager getInput() {
+		return input;
+	}
+
+	/*
+	 * Returns the reference to {@Renderer}.
+	 * 
+	 * @return reference to {@Renderer}.
+	 */
+	public Renderer getRenderer() {
+		return renderer;
+	}
+
+	// public Audio getAudio() { return audio; }
+
+	/*
+	 * Closes the program and handles all the necessary operations associated with it.
+	 */
+	public void close() {
+		//Stop the game loop
+		isRunning = false;
+		
+		//TODO Check if all the different states a screen can be in are really necessary (asses at the the end of the project).
+		screen.pause();
+		screen.dispose();
+
+		//Terminates the program
+		System.exit(0);
+	}
+	
+	/*
+	 * Creates a new instance of VacManGame and calls its start method.
+	 */
+	public static void main(String[] args) {
+		new VacManGame();
+	}
+}
  
