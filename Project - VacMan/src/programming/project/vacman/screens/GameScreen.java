@@ -1,6 +1,7 @@
 package programming.project.vacman.screens;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 
@@ -109,11 +110,17 @@ public class GameScreen extends Screen{
 				break;
 		}
 		
+		
+		// Initialize the current score
+		world.score = 0;
+		
 		for(Cookie coin : world.coins) {
 			if(!coin.isCollected()) {
 				g.drawImage(Assets.coin, 
 						convertX(coin.getPosX()), convertY(coin.getPosY()), convertX(coin.getPosX() + Cookie.DIMENSION_X), convertY(coin.getPosY() + Cookie.DIMENSION_Y), 
 						0, 0, Assets.coin.getWidth(), Assets.coin.getHeight(), null);
+			} else {	// Count collected coins for score
+				world.score++;
 			}
 		}
 		
@@ -132,18 +139,54 @@ public class GameScreen extends Screen{
 						0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
 			}
 		}
-		
+		// TODO Add image for ghosts. Maybe different per category?
 		for(Ghost ghost : world.ghosts) {
 			g.drawImage(Assets.vacman_up, 
 					convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
 					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
 		}
 		
-		g.drawRect(convertX(0), convertY(0), 1904, 952);
+		g.drawRect(convertX(0), convertY(0), 1904, 952);		
 		
 		
+		g.drawString(world.vacMan.getPosX() + ", " + world.vacMan.getPosY(), worldStartRenderX, worldStartRenderY);
+
 		
-		g.drawString(world.vacMan.getPosX() + ", " + world.vacMan.getPosY(), worldStartRenderX + 100, worldStartRenderY + 10);
+		// Set current score below the {@code GameScreen}
+		g.setFont(new Font("TimesRoman", Font.PLAIN, 64));
+		g.setColor(Color.YELLOW);
+		g.drawString("Score:" + world.score, worldStartRenderX + worldRenderWidth - 256, worldStartRenderY + worldRenderHeight + 64);
+		 
+
+		// Draw VacMans according to lives left
+		for(int i = 0; i< world.vacMan.getLives(); i++) {
+			g.drawImage(Assets.vacman_left,
+					worldStartRenderX + i* convertX(VacMan.DIMENSION_X) +10, worldStartRenderY + worldRenderHeight +10, worldStartRenderX + (i+1)*convertX(VacMan.DIMENSION_X), worldStartRenderY + worldRenderHeight + convertX(VacMan.DIMENSION_Y),
+					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+		}
+		
+		System.out.println(world.vacMan.getLives());
+		// If VacMan dies, reset game.
+		if(world.vacMan.getLives() == 0) {
+			game.isRunning = false;		// Break out of the GameLoop.
+			
+			world.vacMan.resetLives(); // Reset lives of vacMan
+			
+			// Game Over
+			g.setFont(new Font("TimesRoman", Font.PLAIN, 128));
+			g.setColor(Color.RED);
+			String text = "Game Over! Press Enter!";
+			String text1 = "Your score is: " + world.score;
+			
+			// Draw Text on GameScreen
+			int text_width  = g.getFontMetrics().stringWidth(text);
+			int text_height = g.getFontMetrics().getHeight();
+			int text1_width  = g.getFontMetrics().stringWidth(text1);
+
+			g.drawString(text, worldStartRenderX + (worldRenderWidth / 2) - text_width/2, worldStartRenderY + (worldRenderHeight / 2) - text_height/2);
+			g.drawString(text1, worldStartRenderX + (worldRenderWidth / 2) - text1_width/2, worldStartRenderY + (worldRenderHeight) - text_height);
+
+		}
 	}
 	
 	/*
@@ -154,10 +197,8 @@ public class GameScreen extends Screen{
 //        if(state == GameState.Running)
 //            state = GameState.Paused;
 //        
-//        if(world.gameOver) {
 //            Settings.addScore(world.score);
 //            Settings.save(game.getFileIO());
-//        }
     }
 
 	/*

@@ -11,6 +11,9 @@ public class VacMan extends GameObject{
 	//Default speed
 	private static final float VELOCITY = 5;
 	
+	// Initialize lives of VacMan
+	private int lives = 2;
+	
 	//Don't allow to create objects
 	private VacMan () {}
 	
@@ -26,11 +29,12 @@ public class VacMan extends GameObject{
 			instance.setVelocity(VELOCITY);
 	    }
 		
+		
 	    return VacMan.instance;
 	}
 
 	/*
-	 * Repos {@code VacMan} if a collision with a {@code WallPart} happened.
+	 * Repos {@code VacMan} if a collision with a {@code WallPart} or {@code Ghost} happened.
 	 * 
 	 * @param obj The {@code GameObject} with which {@code VacMan} collided.
 	 * @param edge The edge on which both objects collided from the perspective of {@code VacMan}.
@@ -52,6 +56,21 @@ public class VacMan extends GameObject{
 					pos.setY(obj.getPosY() - DIMENSION_Y);
 					break;
 			}
-		}		
+		} else if(obj instanceof Ghost) {		// Loses a live if collision with ghost.
+			this.lives --;
+		}
+	}
+	
+	
+	/**
+	 * Returns the lives of {@code VacMan}
+	 * @return Returns the lives.
+	 */
+	public int getLives() {
+		return lives;
+	}
+	
+	public void resetLives() {
+		lives = 2;
 	}
 }
