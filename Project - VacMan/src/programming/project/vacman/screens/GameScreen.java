@@ -21,7 +21,15 @@ import programming.project.vacman.gameobjects.WallPart.Status;
  * resumed, disposed).  
  */
 public class GameScreen extends Screen{
+	enum GameState {
+        READY,
+        RUNNING,
+        PAUSED,
+        GAMEOVER
+    }
+	
 	private World world;
+	private GameState state = GameState.RUNNING;
 	
 	/*
 	 * Initializes the newly created {@code GameScreen} object by creating a data model {@code World}.
@@ -43,39 +51,62 @@ public class GameScreen extends Screen{
 	public void update(float deltaTime) {
 		game.getInput().poll();
 		
-		//if(game.getInput().keyReleased(KeyEvent.VK_UP) == true && game.getInput().keyReleased(KeyEvent.VK_DOWN) == true &&
-		//		game.getInput().keyReleased(KeyEvent.VK_LEFT) == true && game.getInput().keyReleased(KeyEvent.VK_RIGHT) == true) {
-		//	world.vacMan.setVelocity(0);
-		//}//else {
-			if(game.getInput().keyPressed(KeyEvent.VK_LEFT) == true) {
-				world.vacMan.moveLeft();
-				world.vacMan.update(deltaTime);
-			}
-			
-			if(game.getInput().keyPressed(KeyEvent.VK_UP) == true) {
-				world.vacMan.moveUp();
-				world.vacMan.update(deltaTime);
-			}
-			
-			if(game.getInput().keyPressed(KeyEvent.VK_RIGHT) == true) {
-				world.vacMan.moveRight();
-				world.vacMan.update(deltaTime);
-			}
-			
-			if(game.getInput().keyPressed(KeyEvent.VK_DOWN) == true) {
-				world.vacMan.moveDown();
-				world.vacMan.update(deltaTime);
-			}
-		//}
+		switch(state) {
+			case RUNNING:
+				updateRunning(deltaTime);
+				break;
+			case GAMEOVER:
+				updateGameover(deltaTime);
+				break;
+		}			
+	}
+
+	 private void updateGameover(float deltaTime) {
+		 if(game.getInput().keyPressed(KeyEvent.VK_ENTER)) {
+			 world.resetWorld();
+			 state = GameState.RUNNING;
+		 }
+	}
+
+	private void updateRunning(float deltaTime) {
+		//LEFT --> Move VacMan left
+		if(game.getInput().keyPressed(KeyEvent.VK_LEFT) == true) {
+			world.vacMan.moveLeft();
+			world.vacMan.update(deltaTime);
+		}
 		
+		//UP --> Move VacMan up
+		if(game.getInput().keyPressed(KeyEvent.VK_UP) == true) {
+			world.vacMan.moveUp();
+			world.vacMan.update(deltaTime);
+		}
+		
+		//RIGHT --> Move VacMan right
+		if(game.getInput().keyPressed(KeyEvent.VK_RIGHT) == true) {
+			world.vacMan.moveRight();
+			world.vacMan.update(deltaTime);
+		}
+		
+		//DOWN --> Move VacMan down
+		if(game.getInput().keyPressed(KeyEvent.VK_DOWN) == true) {
+			world.vacMan.moveDown();
+			world.vacMan.update(deltaTime);
+		}
+	
+		//ESC --> Exit game
 		if(game.getInput().keyPressed(KeyEvent.VK_ESCAPE) == true) {
 			game.close();
 		}
-		
+	
+		//Update world
 		world.update(deltaTime);
+		
+		if(world.isGameOver) {
+			state = GameState.GAMEOVER;
+		}
 	}
 
-	 /*
+	/*
      * Draws the data model {@code World} on the display.
      * 
      * @param gfx A {@code Graphics} object necessary to draw on the screen.
@@ -110,17 +141,11 @@ public class GameScreen extends Screen{
 				break;
 		}
 		
-		
-		// Initialize the current score
-		world.score = 0;
-		
-		for(Cookie coin : world.coins) {
+		for(Cookie coin : world.cookies) {
 			if(!coin.isCollected()) {
 				g.drawImage(Assets.coin, 
 						convertX(coin.getPosX()), convertY(coin.getPosY()), convertX(coin.getPosX() + Cookie.DIMENSION_X), convertY(coin.getPosY() + Cookie.DIMENSION_Y), 
 						0, 0, Assets.coin.getWidth(), Assets.coin.getHeight(), null);
-			} else {	// Count collected coins for score
-				world.score++;
 			}
 		}
 		
@@ -153,25 +178,22 @@ public class GameScreen extends Screen{
 
 		
 		// Set current score below the {@code GameScreen}
+		// TODO Don't use fixed values for score placement. Rather use relative ones like 0.1 * worldRenderWidth. Otherwise this will lead to different appearance on different screens.
 		g.setFont(new Font("TimesRoman", Font.PLAIN, 64));
 		g.setColor(Color.YELLOW);
 		g.drawString("Score:" + world.score, worldStartRenderX + worldRenderWidth - 256, worldStartRenderY + worldRenderHeight + 64);
 		 
 
 		// Draw VacMans according to lives left
+		// TODO Don't use fixed values for distance between two VacMan life indicators due to different appearance on different screens. 
 		for(int i = 0; i< world.vacMan.getLives(); i++) {
 			g.drawImage(Assets.vacman_left,
 					worldStartRenderX + i* convertX(VacMan.DIMENSION_X) +10, worldStartRenderY + worldRenderHeight +10, worldStartRenderX + (i+1)*convertX(VacMan.DIMENSION_X), worldStartRenderY + worldRenderHeight + convertX(VacMan.DIMENSION_Y),
 					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
 		}
 		
-		System.out.println(world.vacMan.getLives());
 		// If VacMan dies, reset game.
-		if(world.vacMan.getLives() == 0) {
-			game.isRunning = false;		// Break out of the GameLoop.
-			
-			world.vacMan.resetLives(); // Reset lives of vacMan
-			
+		if(world.vacMan.getLives() == 0) {			
 			// Game Over
 			g.setFont(new Font("TimesRoman", Font.PLAIN, 128));
 			g.setColor(Color.RED);

@@ -54,6 +54,7 @@ public abstract class GameObject {
 	}
 	
 	protected Vector2D pos;
+	protected Vector2D spawnPos;
 	
 	protected float speed;
 	
@@ -69,6 +70,7 @@ public abstract class GameObject {
 	 */
 	public GameObject() {
 		pos = new Vector2D(0, 0);
+		spawnPos = new Vector2D(0, 0);
 		speed = 0;
 		direction = Direction.UP;
 	}
@@ -108,6 +110,27 @@ public abstract class GameObject {
 	 */
 	public float getPosY() {
 		return pos.getY();
+	}
+	
+
+	/*
+	 * Saves the spawn position of the {@code Ghost}.
+	 * 
+	 * @param x The x-coordinate of the spawn position.
+	 * @param y The y-coordinate of the spawn position.
+	 */
+	public void setSpawnPos(int x, int y) {
+		spawnPos.setX(x);
+		spawnPos.setY(y);
+	}
+	
+	/*
+	 * Returns spawn position of the {@code Ghost}.
+	 * 
+	 * @return The spawn position of the {@code Ghost}.
+	 */
+	public Vector2D getSpawnPos() {
+		return spawnPos;
 	}
 	
 	/*

@@ -48,19 +48,6 @@ public class VacManGame {
 		isRunning = true;						//set game loop running
 		  
 		startGameLoop();						//start the game loop
-		
-		// TODO Actually, I don't like this procedure yet.
-		while (!isRunning) {					// VacMan died and GameLoop is stopped
-			getInput().poll();
-			if(getInput().keyPressed(KeyEvent.VK_ENTER)) {	// Reload Screen with enter		
-				screen = new LoadingScreen(this);		
-				  
-				isRunning = true;						
-				  
-				startGameLoop();															
-			}
-		}
-
 	}
 	  
 	/**

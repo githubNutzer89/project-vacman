@@ -23,13 +23,16 @@ public class World{
 	public static final int WORLD_WIDTH = 28;
 	public static final int WORLD_HEIGHT = 14;
 	
-	//Initialize the score for collected coins
+	//The score for collected coins
 	public int score;
+	
+	//Is the game over?
+	public boolean isGameOver;
 	
 	//The GameObjects
 	public VacMan vacMan;
 	public ArrayList<WallPart> wallParts;
-	public ArrayList<Cookie> coins;
+	public ArrayList<Cookie> cookies;
 	public ArrayList<Ghost> ghosts;
 
 	//The Ghosts
@@ -45,11 +48,7 @@ public class World{
 	 * Initializes a newly created World object. 
 	 * 
 	 */
-	public World() {
-		wallParts = new ArrayList<WallPart>();
-		coins = new ArrayList<Cookie>();
-		ghosts = new ArrayList<Ghost>();
-		
+	public World() {		
 		init();
 	}
 	
@@ -57,9 +56,16 @@ public class World{
 	 * Builds the level according lvl.png by comparing each pixel with the preset values in {@code BlockType}.
 	 * If there is a match the appropriate {@code GameObject} is created.
 	 */
-	public void init() {
+	private void init() {
+		wallParts = new ArrayList<WallPart>();
+		cookies = new ArrayList<Cookie>();
+		ghosts = new ArrayList<Ghost>();
+		
 		//The RGB value
 		int rgb = 0;
+		
+		//The game is not over
+		isGameOver = false;
 		
 		//Go through each pixel
 		for(int i=0; i<WORLD_WIDTH; i++) {
@@ -89,20 +95,23 @@ public class World{
 				if(BlockType.COIN.sameColor(rgb)) {
 					Cookie coin = new Cookie();
 					coin.setPos(i, j);
-					coins.add(coin);
+					cookies.add(coin);
 					gameStaticObjects[i][j] = coin;
 				}
 				
 				//Vacman
 				if(BlockType.VACMAN.sameColor(rgb)) {
 					vacMan = VacMan.getInstance();
+					vacMan.resetLives();
 					vacMan.setPos(i, j);
+					vacMan.setSpawnPos(i, j);
 				}
 				
 				//Ghosts
 				if(BlockType.GHOST_SPAWNPOINT.sameColor(rgb)) {
 					Ghost ghost = new Ghost();
 					ghost.setPos(i, j);
+					ghost.setSpawnPos(i, j);
 					ghosts.add(ghost);
 				}
 			}
@@ -131,50 +140,79 @@ public class World{
 	 * @param deltaTime The time between two frames.
 	 */
 	public void update(float deltaTime) {		
-		//TODO Use gameStaticObjects[i][j] for collision detection instead of iterating through all GameObjects
-		vacMan.update(deltaTime);
-		
-		//Collision Detection for all coins with VacMan
-		for(Cookie coin : coins) {
-			coin.isCollided(vacMan);
-			//vacMan.isCollidated(coin);
-		}
-		
-		//Moving the ghosts
-		for(Ghost ghost : ghosts) {
-//			System.out.println(ghost.getType().name() + ": " + ghost.isOnTheMove());
-//			System.out.println(ghost.getType().name() + ": (" + ghost.getPosX() + ", " + ghost.getPosY() + ") " + ghost.getDirection().name());
-//			System.out.println(ghost.getType().name() + ": (" + ghost.getCurrentTile().getX() + ", " + ghost.getCurrentTile().getY() + ") " + ": (" + ghost.getDestTile().getX() + ", " + ghost.getDestTile().getY() + ") ");
+		if(isGameOver == false) {
+			//TODO Use gameStaticObjects[i][j] for collision detection instead of iterating through all GameObjects
+			vacMan.update(deltaTime);
 			
-			// Check whether {@code VacMan} collides with {@code Ghost}
-			if (vacMan.isCollided(ghost)) {
-				if (vacMan.getLives() > 0) { // If VacMan is still alive, respawn
-					wallParts = new ArrayList<WallPart>();
-					coins = new ArrayList<Cookie>();
-					ghosts = new ArrayList<Ghost>();
-					
-					init();
+			score = 0;
+			
+			//Collision Detection for all coins with VacMan
+			for(Cookie cookie : cookies) {
+				cookie.isCollided(vacMan);
+				
+				//Counts the collected cookies
+				if(cookie.isCollected()) {
+					score++;
 				}
 			}
 			
-			if(!ghost.isOnTheMove()) {
-				ghost.setDirection(getNewDirection(ghost));
-				ghost.moveOneTile();
+			//Moving the ghosts
+			for(Ghost ghost : ghosts) {
+				
+				// Check whether {@code VacMan} collides with {@code Ghost}
+				if (vacMan.isCollided(ghost)) {
+					if (vacMan.getLives() > 0) { // If VacMan is still alive, respawn
+						resetVacMan();
+						resetGhosts();
+					}else {
+						isGameOver = true;
+					}
+				}
+				
+				if(!ghost.isOnTheMove()) {
+					ghost.setDirection(getNewDirection(ghost));
+					ghost.moveOneTile();
+				}
+				
+				//System.out.println(ghost.getType().name() + ": (" + ghost.getPosX() + ", " + ghost.getPosY() + ") " + ghost.getDirection().name());
+				ghost.update(deltaTime);
 			}
 			
-			//System.out.println(ghost.getType().name() + ": (" + ghost.getPosX() + ", " + ghost.getPosY() + ") " + ghost.getDirection().name());
-			ghost.update(deltaTime);
+			//Collision Detection for all WallParts with VacMan and all Ghosts
+			for(WallPart wallPart : wallParts) {
+				vacMan.isCollided(wallPart);
+				
+				blinky.isCollided(wallPart);
+				pinky.isCollided(wallPart);
+				inky.isCollided(wallPart);
+				clyde.isCollided(wallPart);
+			}
 		}
-		
-		//Collision Detection for all WallParts with VacMan and all Ghosts
-		for(WallPart wallPart : wallParts) {
-			vacMan.isCollided(wallPart);
-			
-			blinky.isCollided(wallPart);
-			pinky.isCollided(wallPart);
-			inky.isCollided(wallPart);
-			clyde.isCollided(wallPart);
+	}
+	
+	/*
+	 * This method resets VacMan to its starting position, i.e. when VacMan dies.
+	 */
+	private void resetVacMan() {
+		vacMan.setPos((int) vacMan.getSpawnPos().getX(), (int) vacMan.getSpawnPos().getY());
+	}
+
+	/*
+	 * This method resets the ghosts to their starting positions and restarts the algorithm, i.e. when VacMan dies.
+	 */
+	private void resetGhosts() {
+		// TODO Reset ghosts algorithm.
+		// TODO One ghost doesn't leave the house after VacMan died.
+		for(Ghost ghost : ghosts) {
+			ghost.setPos((int) ghost.getSpawnPos().getX(), (int) ghost.getSpawnPos().getY());
 		}
+	}
+	
+	/*
+	 * This method resets the world to its starting values, e.g. when VacMan finally dies (Gameover).
+	 */
+	public void resetWorld() {
+		init();
 	}
 	
 	/*
