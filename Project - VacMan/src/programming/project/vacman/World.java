@@ -23,8 +23,8 @@ public class World{
 	public static final int WORLD_WIDTH = 28;
 	public static final int WORLD_HEIGHT = 14;
 	
-	//The points earned by the player
-	public int pointsEarned;
+	//Initialize the score for collected coins
+	public int score;
 	
 	//The GameObjects
 	public VacMan vacMan;
@@ -145,6 +145,17 @@ public class World{
 //			System.out.println(ghost.getType().name() + ": " + ghost.isOnTheMove());
 //			System.out.println(ghost.getType().name() + ": (" + ghost.getPosX() + ", " + ghost.getPosY() + ") " + ghost.getDirection().name());
 //			System.out.println(ghost.getType().name() + ": (" + ghost.getCurrentTile().getX() + ", " + ghost.getCurrentTile().getY() + ") " + ": (" + ghost.getDestTile().getX() + ", " + ghost.getDestTile().getY() + ") ");
+			
+			// Check whether {@code VacMan} collides with {@code Ghost}
+			if (vacMan.isCollided(ghost)) {
+				if (vacMan.getLives() > 0) { // If VacMan is still alive, respawn
+					wallParts = new ArrayList<WallPart>();
+					coins = new ArrayList<Cookie>();
+					ghosts = new ArrayList<Ghost>();
+					
+					init();
+				}
+			}
 			
 			if(!ghost.isOnTheMove()) {
 				ghost.setDirection(getNewDirection(ghost));
