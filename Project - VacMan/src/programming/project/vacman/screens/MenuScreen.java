@@ -1,5 +1,6 @@
 package programming.project.vacman.screens;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class MenuScreen extends Screen{
 		game.getInput().poll();
 		
 		if(game.getInput().keyPressedOnce(KeyEvent.VK_UP) == true || game.getInput().keyPressedOnce(KeyEvent.VK_DOWN) == true) {
-			isStartSelected = !isStartSelected;
+			isStartSelected = !isStartSelected;			
 			
 			for(WallPart wallPart : wallParts) {
 				wallPart.toogleRedNormal();
@@ -110,19 +111,28 @@ public class MenuScreen extends Screen{
      * Draws the {@code WallPart}s according their {@code Status} on the display. 
      * 
      * @param gfx A {@code Graphics} object necessary to draw on the screen.
+     * @param highRiserScreen An array of {@code Color}s where each item corresponds to a window of the high riser. The saved {@code Color} will be displayed.
      * @param deltaTime The time between two frames.
      */
 	@Override
-	public void render(Graphics g, float deltaTime) {
+	public void render(Graphics g, Color[][] highRiserScreen, float deltaTime) {
 		for(WallPart wallPart : wallParts) {
 			if(wallPart.getStatus() == Status.RED) {
+				//Draw on display
 				g.drawImage(Assets.wallPartRed, 
 						convertX(wallPart.getPosX()), convertY(wallPart.getPosY()), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
 						0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
+				
+				//Draw on high riser
+				highRiserScreen[(int) wallPart.getPosX()][(int) wallPart.getPosY()] = new Color(255, 0, 0);
 			}else {
+				//Draw on display
 				g.drawImage(Assets.wallPart, 
 						convertX(wallPart.getPosX()), convertY(wallPart.getPosY()), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
 						0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
+				
+				//Draw on high riser
+				highRiserScreen[(int) wallPart.getPosX()][(int) wallPart.getPosY()] = new Color(100, 100, 100);
 			}
 		}
 	}
@@ -153,5 +163,4 @@ public class MenuScreen extends Screen{
 		// TODO Auto-generated method stub
 		
 	}
-
 }

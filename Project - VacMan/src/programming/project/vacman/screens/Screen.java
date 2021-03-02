@@ -1,6 +1,9 @@
 package programming.project.vacman.screens;
 
+import java.awt.Color;
 import java.awt.Graphics;
+import java.io.IOException;
+
 import programming.project.vacman.VacManGame;
 import programming.project.vacman.World;
 
@@ -45,10 +48,11 @@ public abstract class Screen {
      * Draws the data model on the display.
      * 
      * @param gfx A {@code Graphics} object necessary to draw on the screen.
+     * @param highRiserScreen An array of {@code Color}s where each item corresponds to a window of the high riser. The saved {@code Color} will be displayed.
      * @param deltaTime The time between two frames.
      */
-    public abstract void render(Graphics gfx, float deltaTime);
-    
+    public abstract void render(Graphics gfx, Color[][] highRiserScreen, float deltaTime);
+        
     /*
      * Called when the game pauses.
      */

@@ -1,5 +1,6 @@
 package programming.project.vacman.screens;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class LoadingScreen extends Screen{
      * @param deltaTime The time between two frames.
      */
 	@Override
-	public void render(Graphics gfx, float deltaTime) {
+	public void render(Graphics gfx, Color[][] highRiserScreen, float deltaTime) {
 		//Not required
 	}
 

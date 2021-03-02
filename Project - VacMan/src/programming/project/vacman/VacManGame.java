@@ -2,6 +2,7 @@ package programming.project.vacman;
 
 import java.awt.event.KeyEvent;
 
+import programming.project.vacman.lighthouse.LighthouseDisplay;
 import programming.project.vacman.screens.LoadingScreen;
 import programming.project.vacman.screens.Screen;
 
@@ -28,6 +29,7 @@ public class VacManGame {
 	 * The {@code Renderer} which draws on the display.
 	 */
 	private Renderer renderer;
+	
 	//private Audio audio;
 	
 	/*
@@ -41,13 +43,25 @@ public class VacManGame {
 	 * 
 	 */
 	public VacManGame() {
+		LighthouseDisplay display = null;
 		input = new KeyboardInputManager();			//to handle keyboard input
-		renderer = new Renderer(this);			//to draw on the display
-		screen = new LoadingScreen(this);		//first screen shown is the LoadingScreen
+		
+		//Establish connection to Lighthouse API
+		try {
+			display = LighthouseDisplay.getDisplay();
+			display.setUsername("lhNutzer89");
+			display.setToken("API-TOK_sAgd-PTT6-xktG-BeBm-u1kI");
+		} catch (Exception e) {
+			System.out.println("Connection failed: " + e.getMessage());
+			e.printStackTrace();
+		}
+		
+		renderer = new Renderer(this, display);		//to draw on the display
+		screen = new LoadingScreen(this);			//first screen shown is the LoadingScreen
 		  
-		isRunning = true;						//set game loop running
+		isRunning = true;							//set game loop running
 		  
-		startGameLoop();						//start the game loop
+		startGameLoop();							//start the game loop
 	}
 	  
 	/**
@@ -87,27 +101,27 @@ public class VacManGame {
 	}
 
 	/*
-	 * Returns the reference to the current {@Screen}.
+	 * Returns the reference to the current {@code Screen}.
 	 * 
-	 * @return reference to the current {@Screen}.
+	 * @return Returns reference to the current {@code Screen}.
 	 */
 	public Screen getCurrentScreen() {
 		return screen;
 	}
 	
 	/*
-	 * Returns the reference to {@KeyboardInput}.
+	 * Returns the reference to {@code KeyboardInput}.
 	 * 
-	 * @return reference to {@KeyboardInput}.
+	 * @return Returns reference to {@code KeyboardInput}.
 	 */
 	public KeyboardInputManager getInput() {
 		return input;
 	}
 
 	/*
-	 * Returns the reference to {@Renderer}.
+	 * Returns the reference to {@code Renderer}.
 	 * 
-	 * @return reference to {@Renderer}.
+	 * @return Returns reference to {@code Renderer}.
 	 */
 	public Renderer getRenderer() {
 		return renderer;
@@ -125,6 +139,7 @@ public class VacManGame {
 		//TODO Check if all the different states a screen can be in are really necessary (asses at the the end of the project).
 		screen.pause();
 		screen.dispose();
+		renderer.dispose();
 
 		//Terminates the program
 		System.exit(0);

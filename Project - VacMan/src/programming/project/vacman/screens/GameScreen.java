@@ -31,6 +31,13 @@ public class GameScreen extends Screen{
 	private World world;
 	private GameState state = GameState.RUNNING;
 	
+	//Colors for the high riser screen (HRS)
+	private final static Color VACMAN_HRS = new Color(255, 0, 0);
+	private final static Color COOKIE_HRS = new Color(0, 255, 255);
+	private final static Color WALL_HRS = new Color(255, 100, 0);
+	private final static Color GHOST_HRS = new Color(255, 0, 255);
+	private final static Color GATE_HRS = new Color(100, 100, 100);
+	
 	/*
 	 * Initializes the newly created {@code GameScreen} object by creating a data model {@code World}.
 	 * 
@@ -113,11 +120,11 @@ public class GameScreen extends Screen{
      * @param deltaTime The time between two frames.
      */
 	@Override
-	public void render(Graphics g, float deltaTime) {
-		// TODO Auto-generated method stub
+	public void render(Graphics g, Color[][] highRiserScreen, float deltaTime) {
 		g.setColor(Color.RED);
 		//g.drawRect(convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), 68, 68);
 		
+		//Draw VacMan on display
 		switch(world.vacMan.getDirection()) {
 			case UP:
 				g.drawImage(Assets.vacman_up, 
@@ -141,11 +148,18 @@ public class GameScreen extends Screen{
 				break;
 		}
 		
+		//Draw VacMan on high riser
+		highRiserScreen[(int) world.vacMan.getPosX()][(int) world.vacMan.getPosY()] = VACMAN_HRS;
+		
 		for(Cookie coin : world.cookies) {
 			if(!coin.isCollected()) {
+				//Draw cookie on display
 				g.drawImage(Assets.coin, 
 						convertX(coin.getPosX()), convertY(coin.getPosY()), convertX(coin.getPosX() + Cookie.DIMENSION_X), convertY(coin.getPosY() + Cookie.DIMENSION_Y), 
 						0, 0, Assets.coin.getWidth(), Assets.coin.getHeight(), null);
+				
+				//Draw cookie on high riser
+				highRiserScreen[(int) coin.getPosX()][(int) coin.getPosY()] = COOKIE_HRS;
 			}
 		}
 		
@@ -153,22 +167,34 @@ public class GameScreen extends Screen{
 		
 		for(WallPart wallPart : world.wallParts) {
 			if(wallPart.getStatus() == Status.NORMAL) {
+				//Draw wall on display
 				g.drawImage(Assets.wallPart, 
 						convertX(wallPart.getPosX()), convertY(wallPart.getPosY()), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
 						0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
+				
+				//Draw wall on high riser
+				highRiserScreen[(int) wallPart.getPosX()][(int) wallPart.getPosY()] = WALL_HRS;
 			}
 			
 			if(wallPart.getStatus() == Status.GATE) {
+				//Draw gate on display
 				g.drawImage(Assets.wallPartGate, 
 						convertX(wallPart.getPosX()), convertY(wallPart.getPosY()), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
 						0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
+				
+				//Draw gate on high riser
+				highRiserScreen[(int) wallPart.getPosX()][(int) wallPart.getPosY()] = GATE_HRS;
 			}
 		}
 		// TODO Add image for ghosts. Maybe different per category?
 		for(Ghost ghost : world.ghosts) {
+			//Draw ghost on display
 			g.drawImage(Assets.vacman_up, 
 					convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
 					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+			
+			//Draw ghost on high riser
+			highRiserScreen[(int) ghost.getPosX()][(int) ghost.getPosY()] = GHOST_HRS;
 		}
 		
 		g.drawRect(convertX(0), convertY(0), 1904, 952);		
@@ -192,8 +218,7 @@ public class GameScreen extends Screen{
 					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
 		}
 		
-		// If VacMan dies, reset game.
-		if(world.vacMan.getLives() == 0) {			
+		if(world.isGameOver) {			
 			// Game Over
 			g.setFont(new Font("TimesRoman", Font.PLAIN, 128));
 			g.setColor(Color.RED);
