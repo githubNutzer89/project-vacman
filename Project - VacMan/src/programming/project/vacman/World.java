@@ -156,6 +156,12 @@ public class World{
 				}
 			}
 			
+			// Check whether score reached maximum number of {@Code Cookie}
+			if(score == cookies.size()) {
+				isGameOver = true;				
+			}
+			
+			
 			//Moving the ghosts
 			for(Ghost ghost : ghosts) {
 				

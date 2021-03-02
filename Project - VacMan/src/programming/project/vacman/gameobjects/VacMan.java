@@ -70,6 +70,9 @@ public class VacMan extends GameObject{
 		return lives;
 	}
 	
+	/**
+	 * Reset the lives of {@code VacMan}
+	 */
 	public void resetLives() {
 		lives = 2;
 	}
