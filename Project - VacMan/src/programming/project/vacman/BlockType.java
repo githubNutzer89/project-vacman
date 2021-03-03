@@ -10,7 +10,8 @@ package programming.project.vacman;
 public enum BlockType {
 	WALL(0, 0, 0),					// black
 	WALL_RED(100, 100, 100), 		// grey
-	COIN(255, 255, 0), 				// yellow
+	COOKIE(255, 255, 0), 			// yellow
+	INJECTION(255, 180, 0),			// orange
 	VACMAN(255, 0, 0), 				// red
 	GHOST_SPAWNPOINT(0, 255, 0), 	// green
 	GHOST_GATE(0, 0, 255); 			// blue

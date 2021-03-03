@@ -173,6 +173,15 @@ public class Ghost extends GameObject{
 	}
 	
 	/*
+	 * Returns the {@code Mode} of the ghost.
+	 * 
+	 * @return Returns the {@code Mode} of the ghost.
+	 */
+	public Mode getMode() {
+		return mode;
+	}
+	
+	/*
 	 * Sets the {@code Type} of the ghost.
 	 * 
 	 * @param type Determines which {@code Type} the {@code Ghost} has.

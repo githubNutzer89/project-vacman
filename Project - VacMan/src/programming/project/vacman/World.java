@@ -5,6 +5,7 @@ import programming.project.vacman.gameobjects.Cookie;
 import programming.project.vacman.gameobjects.GameObject;
 import programming.project.vacman.gameobjects.GameObject.Direction;
 import programming.project.vacman.gameobjects.Ghost;
+import programming.project.vacman.gameobjects.Ghost.Mode;
 import programming.project.vacman.gameobjects.Ghost.Type;
 import programming.project.vacman.gameobjects.VacMan;
 import programming.project.vacman.gameobjects.WallPart;
@@ -22,6 +23,9 @@ public class World{
 	//The size of the world
 	public static final int WORLD_WIDTH = 28;
 	public static final int WORLD_HEIGHT = 14;
+	
+	//Timer
+	float timer;
 	
 	//The score for collected coins
 	public int score;
@@ -67,6 +71,9 @@ public class World{
 		//The game is not over
 		isGameOver = false;
 		
+		//Set timer to 0
+		timer = 0;
+		
 		//Go through each pixel
 		for(int i=0; i<WORLD_WIDTH; i++) {
 			for(int j=0; j<WORLD_HEIGHT; j++) {
@@ -91,12 +98,21 @@ public class World{
 					//gameStaticObjects[i][j] = wallPart; //Uncomment would make the ghosts considering the gate as wall so they don't move 
 				}
 				
-				//Coin
-				if(BlockType.COIN.sameColor(rgb)) {
-					Cookie coin = new Cookie();
-					coin.setPos(i, j);
-					cookies.add(coin);
-					gameStaticObjects[i][j] = coin;
+				//Cookie
+				if(BlockType.COOKIE.sameColor(rgb)) {
+					Cookie cookie = new Cookie();
+					cookie.setPos(i, j);
+					cookies.add(cookie);
+					gameStaticObjects[i][j] = cookie;
+				}
+				
+				//Injection
+				if(BlockType.INJECTION.sameColor(rgb)) {
+					Cookie cookie = new Cookie();
+					cookie.setPos(i, j);
+					cookie.setInjection(true);
+					cookies.add(cookie);
+					gameStaticObjects[i][j] = cookie;
 				}
 				
 				//Vacman
@@ -141,6 +157,9 @@ public class World{
 	 */
 	public void update(float deltaTime) {		
 		if(isGameOver == false) {
+			//Increase timer
+			timer += deltaTime;
+			
 			//TODO Use gameStaticObjects[i][j] for collision detection instead of iterating through all GameObjects
 			vacMan.update(deltaTime);
 			
@@ -153,15 +172,33 @@ public class World{
 				//Counts the collected cookies
 				if(cookie.isCollected()) {
 					score++;
+					
+					//If there was an injection collected
+					if(cookie.isInjection()) {
+						setGhostsFrigthened();
+						cookie.setInjection(false);
+					}
 				}
 			}
 			
 			//Moving the ghosts
 			for(Ghost ghost : ghosts) {
+				//Chose algorithm for the ghosts (basically starting with SCATTER, after 7s switching to CHASE for 20s
+				//and then back to SCATTER and so on), if not FREIGHTEND or EATEN
+				if(ghost.getMode() != Mode.FRIGHTEND && ghost.getMode() != Mode.EATEN) {
+					if(timer % 27 >= 0 && timer % 27 <= 7 && timer <= 88) {
+						//Scatter mode
+						ghost.setMode(Mode.SCATTER);
+					}else {
+						//Chase mode
+						ghost.setMode(Mode.CHASE);
+					}
+				}
 				
 				// Check whether {@code VacMan} collides with {@code Ghost}
 				if (vacMan.isCollided(ghost)) {
 					if (vacMan.getLives() > 0) { // If VacMan is still alive, respawn
+						timer = 0;
 						resetVacMan();
 						resetGhosts();
 					}else {
@@ -190,6 +227,17 @@ public class World{
 		}
 	}
 	
+	/*
+	 * This method sets all ghosts to {@code FRIGHTENED} mode if they are not in {@code EATEN} mode.
+	 */
+	private void setGhostsFrigthened() {
+		for(Ghost ghost : ghosts) {
+			if(ghost.getMode() != Mode.EATEN) {
+				ghost.setMode(Mode.FRIGHTEND);
+			}
+		}
+	}
+
 	/*
 	 * This method resets VacMan to its starting position, i.e. when VacMan dies.
 	 */

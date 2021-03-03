@@ -8,14 +8,16 @@ package programming.project.vacman.gameobjects;
  * Since only {@code VacMan} eats cookies collisions are only checked between cookies and {@code VacMan}.
  */
 public class Cookie extends GameObject{
-	private boolean collected;
+	private boolean isCollected;
+	private boolean isInjection;
 	
 	/**
 	 * Initializes a newly created {@code Cookie} object. Sets {@code collected} to {@code false} as default. 
 	 * 
 	 */
 	public Cookie() {
-		collected = false;
+		isCollected = false;
+		isInjection = false;
 	}
 	
 	/*
@@ -24,7 +26,25 @@ public class Cookie extends GameObject{
 	 * @return Returns the state of the {@code Cookie} (collected or not collected).
 	 */
 	public boolean isCollected() {
-		return collected;
+		return isCollected;
+	}
+	
+	/*
+	 * Returns true if this {@code Cookie} is an injection.
+	 * 
+	 * @return Returns true if this {@code Cookie} is an injection.
+	 */
+	public boolean isInjection() {
+		return isInjection;
+	}
+	
+	/*
+	 * Turns the cookie into an injection or vice versa.
+	 * 
+	 * @param injected True if the cookie should turn into an injection.
+	 */
+	public void setInjection(boolean injected) {
+		this.isInjection = injected;
 	}
 	
 	/*
@@ -36,7 +56,7 @@ public class Cookie extends GameObject{
 	@Override
 	public void onCollision(GameObject obj, CollisionEdge edge) {
 		if(obj instanceof VacMan) {
-			collected = true;
+			isCollected = true;
 		}
 	}
 
