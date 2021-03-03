@@ -17,6 +17,9 @@ public class Assets {
     public static BufferedImage vacman_right;
     public static BufferedImage vacman_down;
     public static BufferedImage vacman_left;
+    public static BufferedImage ghost;
+
+    
     
 //    public static Sound click;
 //    public static Sound eat;

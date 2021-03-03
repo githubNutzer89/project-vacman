@@ -12,7 +12,7 @@ public class VacMan extends GameObject{
 	private static final float VELOCITY = 5;
 	
 	// Initialize lives of VacMan
-	private int lives = 2;
+	private int lives = 3;
 	
 	//Don't allow to create objects
 	private VacMan () {}
@@ -71,6 +71,6 @@ public class VacMan extends GameObject{
 	}
 	
 	public void resetLives() {
-		lives = 2;
+		lives = 3;
 	}
 }

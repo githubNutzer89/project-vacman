@@ -164,11 +164,15 @@ public class GameScreen extends Screen{
 						0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
 			}
 		}
-		// TODO Add image for ghosts. Maybe different per category?
+		// TODO Add image for different ghosts. Maybe different per category?
 		for(Ghost ghost : world.ghosts) {
-			g.drawImage(Assets.vacman_up, 
+			g.drawImage(Assets.ghost, 
 					convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
 					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+
+			// TODO Just the visualization of type, mode and target of each ghost. Can be deleted in the end.
+			g.drawString("" + ghost.getType() + ": " + ghost.getMode(), convertX(ghost.getPosX()), convertY(ghost.getPosY()));
+			g.drawString("X: " + ghost.getTarget().getX() + " Y: " + ghost.getTarget().getY() , convertX(ghost.getPosX()), convertY(ghost.getPosY() + Ghost.DIMENSION_Y));
 		}
 		
 		g.drawRect(convertX(0), convertY(0), 1904, 952);		

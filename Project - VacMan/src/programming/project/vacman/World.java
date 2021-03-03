@@ -1,10 +1,13 @@
 package programming.project.vacman;
 
 import java.util.ArrayList;
+import java.util.Random;
+
 import programming.project.vacman.gameobjects.Cookie;
 import programming.project.vacman.gameobjects.GameObject;
 import programming.project.vacman.gameobjects.GameObject.Direction;
 import programming.project.vacman.gameobjects.Ghost;
+import programming.project.vacman.gameobjects.Ghost.Mode;
 import programming.project.vacman.gameobjects.Ghost.Type;
 import programming.project.vacman.gameobjects.VacMan;
 import programming.project.vacman.gameobjects.WallPart;
@@ -25,6 +28,19 @@ public class World{
 	
 	//The score for collected coins
 	public int score;
+	
+	//Time the ghosts spend in specific mode. 
+	public float modeTime;
+	
+	// Maximum time spent in a certain mode.
+	public static final float MAX_MODE_TIME = 20.0f;
+	
+	// Chase mode ?
+	public boolean chase = false;
+	
+	// TODO Maybe let the ghosts change mode randomly?
+	//Random mode generator.
+	Random rnd = new Random();
 	
 	//Is the game over?
 	public boolean isGameOver;
@@ -117,20 +133,10 @@ public class World{
 			}
 		}
 		
-		//Set the type and the target of each ghost
-		//(target is the position where the ghost is supposed to go to)
-		blinky = ghosts.get(0);
-		blinky.setType(Type.BLINKY);
-		blinky.setTarget(new Vector2D(0, 0));
-		pinky = ghosts.get(1);
-		pinky.setType(Type.PINKY);
-		pinky.setTarget(new Vector2D(28, 0));
-		inky = ghosts.get(2);
-		inky.setType(Type.INKY);
-		inky.setTarget(new Vector2D(28, 14));
-		clyde = ghosts.get(3);
-		clyde.setType(Type.CLYDE);
-		clyde.setTarget(new Vector2D(0, 14));
+		// Initialize ghosts and their respective mode.
+		initGhostMode();
+		
+
 	}
 	
 	/*
@@ -144,7 +150,11 @@ public class World{
 			//TODO Use gameStaticObjects[i][j] for collision detection instead of iterating through all GameObjects
 			vacMan.update(deltaTime);
 			
+			// Initialize score.
 			score = 0;
+			
+			// Count modeTime to trigger switching between ghosts mode.
+			modeTime += deltaTime;
 			
 			//Collision Detection for all coins with VacMan
 			for(Cookie cookie : cookies) {
@@ -169,12 +179,15 @@ public class World{
 					}
 				}
 				
-				if(!ghost.isOnTheMove()) {
+				// If ghost is on or below spawn point, move up to escape spawn area. 
+				if((ghost.getPosX() == ghost.getSpawnPos().getX() && ghost.getPosY() == ghost.getSpawnPos().getY()) || (ghost.getPosX() == ghost.getSpawnPos().getX() && ghost.getPosY() == ghost.getSpawnPos().getY()-1)) {
+					ghost.setDirection(Direction.UP);
+					ghost.moveOneTile();
+				} else if (!ghost.isOnTheMove()) {		// else move in new possible direction.
 					ghost.setDirection(getNewDirection(ghost));
 					ghost.moveOneTile();
 				}
 				
-				//System.out.println(ghost.getType().name() + ": (" + ghost.getPosX() + ", " + ghost.getPosY() + ") " + ghost.getDirection().name());
 				ghost.update(deltaTime);
 			}
 			
@@ -187,6 +200,22 @@ public class World{
 				inky.isCollided(wallPart);
 				clyde.isCollided(wallPart);
 			}
+			
+			// If in chase mode, reset chase coordinates.
+			if(chase) {
+				resetModeGhosts(chase);
+			}
+			
+			//Reset Ghost modes after approximately maximum mode time.
+			if (modeTime>MAX_MODE_TIME) {
+				
+				// Reset ghost mode and timer.
+				modeTime = 0.0f;
+				// Toggle chase mode.
+				chase = !chase;
+				
+				resetModeGhosts(chase);
+			}
 		}
 	}
 	
@@ -197,15 +226,76 @@ public class World{
 		vacMan.setPos((int) vacMan.getSpawnPos().getX(), (int) vacMan.getSpawnPos().getY());
 	}
 
+	/**
+	 * This method initializes the ghosts to standard scatter mode with respective target vector
+	 * and sets the overall mode to not chase.
+	 */
+	private void initGhostMode() {
+		//Set the timer to zero and the overall mode to not chase.
+		modeTime = 0.0f;
+		chase = false;
+		
+		//Initialize the type and the target of each ghost
+		//(target is the position where the ghost is supposed to go to)
+		blinky = ghosts.get(0);
+		blinky.setType(Type.BLINKY);
+		blinky.setTarget(new Vector2D(0, 0));
+		blinky.setMode(Mode.SCATTER);
+		pinky = ghosts.get(1);
+		pinky.setType(Type.PINKY);
+		pinky.setMode(Mode.SCATTER);
+		pinky.setTarget(new Vector2D(0, 14));
+		inky = ghosts.get(2);
+		inky.setType(Type.INKY);
+		inky.setMode(Mode.SCATTER);
+		inky.setTarget(new Vector2D(28, 0));
+		clyde = ghosts.get(3);
+		clyde.setType(Type.CLYDE);
+		clyde.setMode(Mode.SCATTER);
+		clyde.setTarget(new Vector2D(28, 14));
+	}
+	
 	/*
 	 * This method resets the ghosts to their starting positions and restarts the algorithm, i.e. when VacMan dies.
 	 */
 	private void resetGhosts() {
-		// TODO Reset ghosts algorithm.
-		// TODO One ghost doesn't leave the house after VacMan died.
+		// Starting position
 		for(Ghost ghost : ghosts) {
 			ghost.setPos((int) ghost.getSpawnPos().getX(), (int) ghost.getSpawnPos().getY());
 		}
+		
+		// Reset to initial ghost mode.
+		initGhostMode();
+		
+	}
+	
+	/**
+	 * This method resets ghost mode from scatter to chase or vice versa.
+	 * @param chase represents the mode for the ghosts. 
+	 */
+	private void resetModeGhosts(boolean chase) {
+		// TODO Add special items to allow for other modes and use ghost mode as parameter instead of chase boolean.
+		
+		// Select random mode for each ghosts with specific target.
+		// If chase mode, set target coordinates:
+		if(chase) {
+			// Direct target
+			blinky.setMode(Mode.CHASE);
+			blinky.setTarget(new Vector2D(vacMan.getPosX(), vacMan.getPosY()));
+			// From the left
+			pinky.setMode(Mode.CHASE);
+			pinky.setTarget(new Vector2D(vacMan.getPosX() - 2, vacMan.getPosY()));
+			// From the right
+			inky.setMode(Mode.CHASE);
+			inky.setTarget(new Vector2D(vacMan.getPosX() + 2, vacMan.getPosY()));
+			// Stupid and follows halfway blinky and vacman.
+			clyde.setMode(Mode.CHASE);
+			clyde.setTarget(new Vector2D((int) ((vacMan.getPosX() + blinky.getPosX())/2), (int) ((vacMan.getPosY() + blinky.getPosY())/2)));
+		} else { // else initial ghost mode, which is scatter
+			initGhostMode();
+
+		}
+		
 	}
 	
 	/*

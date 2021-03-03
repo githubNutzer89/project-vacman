@@ -41,6 +41,7 @@ public class LoadingScreen extends Screen{
 			Assets.vacman_left = ImageIO.read(new File("img/vacman_left.png"));
 			Assets.vacman_up = ImageIO.read(new File("img/vacman_up.png"));
 			Assets.vacman_down = ImageIO.read(new File("img/vacman_down.png"));
+			Assets.ghost = ImageIO.read(new File("img/Geist.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
