@@ -203,37 +203,47 @@ public class GameScreen extends Screen{
 		g.drawString(world.vacMan.getPosX() + ", " + world.vacMan.getPosY(), worldStartRenderX, worldStartRenderY);
 
 		
-		// Set current score below the {@code GameScreen}
-		// TODO Don't use fixed values for score placement. Rather use relative ones like 0.1 * worldRenderWidth. Otherwise this will lead to different appearance on different screens.
+		// Set current score at the bottom right of the {@code GameScreen}
+		String scoreText = "Score: " + world.score;
 		g.setFont(new Font("TimesRoman", Font.PLAIN, 64));
 		g.setColor(Color.YELLOW);
-		g.drawString("Score:" + world.score, worldStartRenderX + worldRenderWidth - 256, worldStartRenderY + worldRenderHeight + 64);
+		g.drawString(scoreText, worldStartRenderX + worldRenderWidth - g.getFontMetrics().stringWidth(scoreText), worldStartRenderY + worldRenderHeight);
 		 
 
-		// Draw VacMans according to lives left
-		// TODO Don't use fixed values for distance between two VacMan life indicators due to different appearance on different screens. 
+		// Draw VacMans according to lives below spawn point of {@code VacMan}
 		for(int i = 0; i< world.vacMan.getLives(); i++) {
 			g.drawImage(Assets.vacman_left,
-					worldStartRenderX + i* convertX(VacMan.DIMENSION_X) +10, worldStartRenderY + worldRenderHeight +10, worldStartRenderX + (i+1)*convertX(VacMan.DIMENSION_X), worldStartRenderY + worldRenderHeight + convertX(VacMan.DIMENSION_Y),
+					convertX(world.vacMan.getSpawnPos().getX() + i*VacMan.DIMENSION_X), convertY(world.vacMan.getSpawnPos().getY()+VacMan.DIMENSION_Y), convertX(world.vacMan.getSpawnPos().getX() + (i+1)*VacMan.DIMENSION_X), convertY(world.vacMan.getSpawnPos().getY() + VacMan.DIMENSION_Y + VacMan.DIMENSION_Y), 
 					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
 		}
 		
-		if(world.isGameOver) {			
-			// Game Over
-			g.setFont(new Font("TimesRoman", Font.PLAIN, 128));
-			g.setColor(Color.RED);
-			String text = "Game Over! Press Enter!";
-			String text1 = "Your score is: " + world.score;
+		// If game is over, display results.
+		if(state == GameState.GAMEOVER) {
 			
-			// Draw Text on GameScreen
+			// Initialize optional text.
+			String text = null;
+			
+			// Set optional text if the game is lost or won.
+			if(world.vacMan.getLives() == 0) {
+				text = "Game Over! Press Enter!";
+				g.setColor(Color.RED);
+			} else if(world.score == world.cookies.size()) {
+				text = "You Won! Press Enter!";
+				g.setColor(Color.GREEN);
+			}
+			
+			// Set font size.
+			g.setFont(new Font("TimesRoman", Font.PLAIN, 128));
+			
+			// Draw Text on GameScreen.
 			int text_width  = g.getFontMetrics().stringWidth(text);
 			int text_height = g.getFontMetrics().getHeight();
-			int text1_width  = g.getFontMetrics().stringWidth(text1);
-
+			int text1_width  = g.getFontMetrics().stringWidth(scoreText);
 			g.drawString(text, worldStartRenderX + (worldRenderWidth / 2) - text_width/2, worldStartRenderY + (worldRenderHeight / 2) - text_height/2);
-			g.drawString(text1, worldStartRenderX + (worldRenderWidth / 2) - text1_width/2, worldStartRenderY + (worldRenderHeight) - text_height);
-
+			g.drawString(scoreText, worldStartRenderX + (worldRenderWidth / 2) - text1_width/2, worldStartRenderY + (worldRenderHeight) - text_height);
 		}
+		
+
 	}
 	
 	/*
