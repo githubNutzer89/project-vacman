@@ -378,6 +378,26 @@ public class World{
 			}
 		}
 	}
+	
+	public boolean isAllCollected() {
+		boolean allCollected = true;
+		
+		//Check for all cookies
+		for(Collectable col : cookies) {
+			if(!col.isCollected()) {
+				allCollected = false;
+			}
+		}
+		
+		//Check for all injections
+		for(Collectable col : injections) {
+			if(!col.isCollected()) {
+				allCollected = false;
+			}
+		}
+		
+		return allCollected;
+	}
 
 	/*
 	 * This method resets VacMan to its starting position, i.e. when VacMan dies.

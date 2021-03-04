@@ -26,7 +26,8 @@ public class GameScreen extends Screen{
         READY,
         RUNNING,
         PAUSED,
-        GAMEOVER
+        GAMEOVER,
+        WON
     }
 	
 	private World world;
@@ -67,10 +68,13 @@ public class GameScreen extends Screen{
 			case GAMEOVER:
 				updateGameover(deltaTime);
 				break;
+			case WON:
+				updateGameover(deltaTime);
+				break;
 		}			
 	}
 
-	 private void updateGameover(float deltaTime) {
+	private void updateGameover(float deltaTime) {
 		 if(game.getInput().keyPressed(KeyEvent.VK_ENTER)) {
 			 world.resetWorld();
 			 state = GameState.RUNNING;
@@ -113,6 +117,10 @@ public class GameScreen extends Screen{
 		if(world.isGameOver) {
 			state = GameState.GAMEOVER;
 		}
+		
+		if(world.isAllCollected()) {
+			state = GameState.WON;
+		}
 	}
 
 	/*
@@ -123,267 +131,278 @@ public class GameScreen extends Screen{
      */
 	@Override
 	public void render(Graphics g, Color[][] highRiserScreen, float deltaTime) {
-		g.setColor(Color.RED);
-		//g.drawRect(convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), 68, 68);
-		
-		//Draw VacMan on display------------------------------------------------------------------------------------------
-		switch(world.vacMan.getDirection()) {
-			case UP:
-				g.drawImage(Assets.vacman_up, 
-						convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
-						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-				break;
-			case RIGHT:
-				g.drawImage(Assets.vacman_right, 
-						convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
-						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-				break;
-			case DOWN:
-				g.drawImage(Assets.vacman_down, 
-						convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
-						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-				break;
-			case LEFT:
-				g.drawImage(Assets.vacman_left, 
-						convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
-						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-				break;
-		}
-		
-		//Draw VacMan on high riser
-		highRiserScreen[(int) world.vacMan.getPosX()][(int) world.vacMan.getPosY()] = VACMAN_HRS;
-		
-		//Draw Cookies on display
-		for(Collectable cookie : world.cookies) {
-			if(!cookie.isCollected()) {
-				//Draw cookie on display
-				g.drawImage(Assets.cookie, 
-						convertX(cookie.getPosX()), convertY(cookie.getPosY()), convertX(cookie.getPosX() + Collectable.DIMENSION_X), convertY(cookie.getPosY() + Collectable.DIMENSION_Y), 
-						0, 0, Assets.cookie.getWidth(), Assets.cookie.getHeight(), null);
-				
-				
-				//Draw cookie on high riser
-				highRiserScreen[(int) cookie.getPosX()][(int) cookie.getPosY()] = COOKIE_HRS;
-			}
-		}
-		
-		//Draw Injections on display
-		for(Collectable injection : world.injections) {
-			if(!injection.isCollected()) {
-				//Draw injection on display
-				g.drawImage(Assets.injection, 
-						convertX(injection.getPosX()), convertY(injection.getPosY()), convertX(injection.getPosX() + Collectable.DIMENSION_X), convertY(injection.getPosY() + Collectable.DIMENSION_Y), 
-						0, 0, Assets.injection.getWidth(), Assets.injection.getHeight(), null);
-				
-				
-				//Draw injection on high riser
-				highRiserScreen[(int) injection.getPosX()][(int) injection.getPosY()] = INJECTION_HRS;
-			}
-		}
-		
-		//g.drawRect(convertX(world.ghost.getPosX()), convertY(world.ghost.getPosY()), 68, 68);
-		
-		for(WallPart wallPart : world.wallParts) {
-			if(wallPart.getStatus() == Status.NORMAL) {
-				//Draw wall on display
-				g.drawImage(Assets.wallPart, 
-						convertX(wallPart.getPosX()), convertY(wallPart.getPosY()), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
-						0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
-				
-				//Draw wall on high riser
-				highRiserScreen[(int) wallPart.getPosX()][(int) wallPart.getPosY()] = WALL_HRS;
-			}
-			
-			if(wallPart.getStatus() == Status.GATE) {
-				//Draw gate on display
-				g.drawImage(Assets.wallPartGate, 
-						convertX(wallPart.getPosX()), convertY(wallPart.getPosY()), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
-						0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
-				
-				//Draw gate on high riser
-				highRiserScreen[(int) wallPart.getPosX()][(int) wallPart.getPosY()] = GATE_HRS;
-			}
-		}
-
-		for(Ghost ghost : world.ghosts) {
-			//Draw ghost on display, chose asset according type and direction
-			if(ghost.getMode() == Mode.FRIGHTEND) {
-				switch(ghost.getDirection()) {
-					case UP:
-						g.drawImage(Assets.frightened_up, 
-								convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-								0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-						break;
-					case DOWN:
-						g.drawImage(Assets.frightened_down, 
-								convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-								0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-						break;
-					case LEFT:
-						g.drawImage(Assets.frightened_left, 
-								convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-								0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-						break;
-					case RIGHT:
-						g.drawImage(Assets.frightened_right, 
-								convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-								0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-						break;
-				}
-			}else if(ghost.getMode() == Mode.EATEN){
-				switch(ghost.getDirection()) {
-					case UP:
-						g.drawImage(Assets.eaten_up, 
-								convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-								0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-						break;
-					case DOWN:
-						g.drawImage(Assets.eaten_down, 
-								convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-								0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-						break;
-					case LEFT:
-						g.drawImage(Assets.eaten_left, 
-								convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-								0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-						break;
-					case RIGHT:
-						g.drawImage(Assets.eaten_right, 
-								convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-								0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-						break;
-				}
-			}else {
-				switch(ghost.getType()) {
-					case BLINKY:
-						switch(ghost.getDirection()) {
-							case UP:
-								g.drawImage(Assets.blinky_up, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case DOWN:
-								g.drawImage(Assets.blinky_down, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case LEFT:
-								g.drawImage(Assets.blinky_left, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case RIGHT:
-								g.drawImage(Assets.blinky_right, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-						}
-						break;
-					case PINKY:
-						switch(ghost.getDirection()) {
-							case UP:
-								g.drawImage(Assets.pinky_up, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case DOWN:
-								g.drawImage(Assets.pinky_down, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case LEFT:
-								g.drawImage(Assets.pinky_left, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case RIGHT:
-								g.drawImage(Assets.pinky_right, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-						}
-						break;
-					case INKY:
-						switch(ghost.getDirection()) {
-							case UP:
-								g.drawImage(Assets.inky_up, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case DOWN:
-								g.drawImage(Assets.inky_down, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case LEFT:
-								g.drawImage(Assets.inky_left, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case RIGHT:
-								g.drawImage(Assets.inky_right, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-						}
-						break;
-					case CLYDE:
-						switch(ghost.getDirection()) {
-							case UP:
-								g.drawImage(Assets.clyde_up, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case DOWN:
-								g.drawImage(Assets.clyde_down, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case LEFT:
-								g.drawImage(Assets.clyde_left, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-							case RIGHT:
-								g.drawImage(Assets.clyde_right, 
-										convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
-										0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-								break;
-						}
-						break;
-				}
-			}
-			
-			//Draw ghost on high riser
-			highRiserScreen[(int) ghost.getPosX()][(int) ghost.getPosY()] = GHOST_HRS;
-		}
-		
-		g.drawRect(convertX(0), convertY(0), 1904, 952);		
-		
-		
-		g.drawString(world.vacMan.getPosX() + ", " + world.vacMan.getPosY(), worldStartRenderX, worldStartRenderY);
-
-		
-		// Set current score below the {@code GameScreen}
-		// TODO Don't use fixed values for score placement. Rather use relative ones like 0.1 * worldRenderWidth. Otherwise this will lead to different appearance on different screens.
-		g.setFont(new Font("TimesRoman", Font.PLAIN, 64));
-		g.setColor(Color.YELLOW);
-		g.drawString("Score:" + world.score, worldStartRenderX + worldRenderWidth - 256, worldStartRenderY + worldRenderHeight + 64);
-
-		// Draw VacMans according to lives left
-		// TODO Don't use fixed values for distance between two VacMan life indicators due to different appearance on different screens. 
-		for(int i = 0; i< world.vacMan.getLives(); i++) {
-			g.drawImage(Assets.vacman_left,
-					worldStartRenderX + i* convertX(VacMan.DIMENSION_X) +10, worldStartRenderY + worldRenderHeight +10, worldStartRenderX + (i+1)*convertX(VacMan.DIMENSION_X), worldStartRenderY + worldRenderHeight + convertX(VacMan.DIMENSION_Y),
-					0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
-		}
-		
-		if(world.isGameOver) {			
-			// Game Over
-			g.setFont(new Font("TimesRoman", Font.PLAIN, 128));
 			g.setColor(Color.RED);
-			String text = "Game Over! Press Enter!";
-			String text1 = "Your score is: " + world.score;
+			//g.drawRect(convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), 68, 68);
+			
+			//Draw VacMan on display------------------------------------------------------------------------------------------
+			switch(world.vacMan.getDirection()) {
+				case UP:
+					g.drawImage(Assets.vacman_up, 
+							convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
+							0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+					break;
+				case RIGHT:
+					g.drawImage(Assets.vacman_right, 
+							convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
+							0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+					break;
+				case DOWN:
+					g.drawImage(Assets.vacman_down, 
+							convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
+							0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+					break;
+				case LEFT:
+					g.drawImage(Assets.vacman_left, 
+							convertX(world.vacMan.getPosX()), convertY(world.vacMan.getPosY()), convertX(world.vacMan.getPosX() + VacMan.DIMENSION_X), convertY(world.vacMan.getPosY() + VacMan.DIMENSION_Y), 
+							0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+					break;
+			}
+			
+			//Draw VacMan on high riser
+			highRiserScreen[(int) world.vacMan.getPosX()][(int) world.vacMan.getPosY()] = VACMAN_HRS;
+			
+			//Draw Cookies on display
+			for(Collectable cookie : world.cookies) {
+				if(!cookie.isCollected()) {
+					//Draw cookie on display
+					g.drawImage(Assets.cookie, 
+							convertX(cookie.getPosX()), convertY(cookie.getPosY()), convertX(cookie.getPosX() + Collectable.DIMENSION_X), convertY(cookie.getPosY() + Collectable.DIMENSION_Y), 
+							0, 0, Assets.cookie.getWidth(), Assets.cookie.getHeight(), null);
+					
+					
+					//Draw cookie on high riser
+					highRiserScreen[(int) cookie.getPosX()][(int) cookie.getPosY()] = COOKIE_HRS;
+				}
+			}
+			
+			//Draw Injections on display
+			for(Collectable injection : world.injections) {
+				if(!injection.isCollected()) {
+					//Draw injection on display
+					g.drawImage(Assets.injection, 
+							convertX(injection.getPosX()), convertY(injection.getPosY()), convertX(injection.getPosX() + Collectable.DIMENSION_X), convertY(injection.getPosY() + Collectable.DIMENSION_Y), 
+							0, 0, Assets.injection.getWidth(), Assets.injection.getHeight(), null);
+					
+					
+					//Draw injection on high riser
+					highRiserScreen[(int) injection.getPosX()][(int) injection.getPosY()] = INJECTION_HRS;
+				}
+			}
+			
+			//g.drawRect(convertX(world.ghost.getPosX()), convertY(world.ghost.getPosY()), 68, 68);
+			
+			for(WallPart wallPart : world.wallParts) {
+				if(wallPart.getStatus() == Status.NORMAL) {
+					//Draw wall on display
+					g.drawImage(Assets.wallPart, 
+							convertX(wallPart.getPosX()), convertY(wallPart.getPosY()), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
+							0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
+					
+					//Draw wall on high riser
+					highRiserScreen[(int) wallPart.getPosX()][(int) wallPart.getPosY()] = WALL_HRS;
+				}
+				
+				if(wallPart.getStatus() == Status.GATE) {
+					//Draw gate on display
+					g.drawImage(Assets.wallPartGate, 
+							convertX(wallPart.getPosX()), convertY(wallPart.getPosY()), convertX(wallPart.getPosX() + WallPart.DIMENSION_X), convertY(wallPart.getPosY() + WallPart.DIMENSION_Y), 
+							0, 0, Assets.wallPart.getWidth(), Assets.wallPart.getHeight(), null);
+					
+					//Draw gate on high riser
+					highRiserScreen[(int) wallPart.getPosX()][(int) wallPart.getPosY()] = GATE_HRS;
+				}
+			}
+
+			for(Ghost ghost : world.ghosts) {
+				//Draw ghost on display, chose asset according type and direction
+				if(ghost.getMode() == Mode.FRIGHTEND) {
+					switch(ghost.getDirection()) {
+						case UP:
+							g.drawImage(Assets.frightened_up, 
+									convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+									0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+							break;
+						case DOWN:
+							g.drawImage(Assets.frightened_down, 
+									convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+									0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+							break;
+						case LEFT:
+							g.drawImage(Assets.frightened_left, 
+									convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+									0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+							break;
+						case RIGHT:
+							g.drawImage(Assets.frightened_right, 
+									convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+									0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+							break;
+					}
+				}else if(ghost.getMode() == Mode.EATEN){
+					switch(ghost.getDirection()) {
+						case UP:
+							g.drawImage(Assets.eaten_up, 
+									convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+									0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+							break;
+						case DOWN:
+							g.drawImage(Assets.eaten_down, 
+									convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+									0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+							break;
+						case LEFT:
+							g.drawImage(Assets.eaten_left, 
+									convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+									0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+							break;
+						case RIGHT:
+							g.drawImage(Assets.eaten_right, 
+									convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+									0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+							break;
+					}
+				}else {
+					switch(ghost.getType()) {
+						case BLINKY:
+							switch(ghost.getDirection()) {
+								case UP:
+									g.drawImage(Assets.blinky_up, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case DOWN:
+									g.drawImage(Assets.blinky_down, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case LEFT:
+									g.drawImage(Assets.blinky_left, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case RIGHT:
+									g.drawImage(Assets.blinky_right, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+							}
+							break;
+						case PINKY:
+							switch(ghost.getDirection()) {
+								case UP:
+									g.drawImage(Assets.pinky_up, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case DOWN:
+									g.drawImage(Assets.pinky_down, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case LEFT:
+									g.drawImage(Assets.pinky_left, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case RIGHT:
+									g.drawImage(Assets.pinky_right, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+							}
+							break;
+						case INKY:
+							switch(ghost.getDirection()) {
+								case UP:
+									g.drawImage(Assets.inky_up, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case DOWN:
+									g.drawImage(Assets.inky_down, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case LEFT:
+									g.drawImage(Assets.inky_left, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case RIGHT:
+									g.drawImage(Assets.inky_right, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+							}
+							break;
+						case CLYDE:
+							switch(ghost.getDirection()) {
+								case UP:
+									g.drawImage(Assets.clyde_up, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case DOWN:
+									g.drawImage(Assets.clyde_down, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case LEFT:
+									g.drawImage(Assets.clyde_left, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+								case RIGHT:
+									g.drawImage(Assets.clyde_right, 
+											convertX(ghost.getPosX()), convertY(ghost.getPosY()), convertX(ghost.getPosX() + Ghost.DIMENSION_X), convertY(ghost.getPosY() + Ghost.DIMENSION_Y), 
+											0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+									break;
+							}
+							break;
+					}
+				}
+				
+				//Draw ghost on high riser
+				highRiserScreen[(int) ghost.getPosX()][(int) ghost.getPosY()] = GHOST_HRS;
+			}
+			
+			g.drawRect(convertX(0), convertY(0), 1904, 952);		
+			
+			
+			g.drawString(world.vacMan.getPosX() + ", " + world.vacMan.getPosY(), worldStartRenderX, worldStartRenderY);
+
+			
+			// Set current score below the {@code GameScreen}
+			// TODO Don't use fixed values for score placement. Rather use relative ones like 0.1 * worldRenderWidth. Otherwise this will lead to different appearance on different screens.
+			g.setFont(new Font("TimesRoman", Font.PLAIN, 64));
+			g.setColor(Color.YELLOW);
+			g.drawString("Score:" + world.score, worldStartRenderX + worldRenderWidth - 256, worldStartRenderY + worldRenderHeight + 64);
+
+			// Draw VacMans according to lives left
+			// TODO Don't use fixed values for distance between two VacMan life indicators due to different appearance on different screens. 
+			for(int i = 0; i< world.vacMan.getLives(); i++) {
+				g.drawImage(Assets.vacman_left,
+						worldStartRenderX + i* convertX(VacMan.DIMENSION_X) +10, worldStartRenderY + worldRenderHeight +10, worldStartRenderX + (i+1)*convertX(VacMan.DIMENSION_X), worldStartRenderY + worldRenderHeight + convertX(VacMan.DIMENSION_Y),
+						0, 0, Assets.vacman_right.getWidth(), Assets.vacman_right.getHeight(), null);
+			}
+
+			//TODO Consider using constants
+			String text = "";
+			String text1 = "";
+			
+			if(state == GameState.GAMEOVER) {
+				g.setFont(new Font("TimesRoman", Font.PLAIN, 128));
+				g.setColor(Color.RED);
+				text = "Game Over! Press Enter!";
+				text1 = "Your score is: " + world.score;
+			}
+			
+			if(state == GameState.WON) {
+				g.setFont(new Font("TimesRoman", Font.PLAIN, 128));
+				g.setColor(Color.RED);
+				text = "Congrats, you won! Press Enter!";
+				text1 = "Your score is: " + world.score;
+			}
 			
 			// Draw Text on GameScreen
 			int text_width  = g.getFontMetrics().stringWidth(text);
@@ -392,8 +411,6 @@ public class GameScreen extends Screen{
 
 			g.drawString(text, worldStartRenderX + (worldRenderWidth / 2) - text_width/2, worldStartRenderY + (worldRenderHeight / 2) - text_height/2);
 			g.drawString(text1, worldStartRenderX + (worldRenderWidth / 2) - text1_width/2, worldStartRenderY + (worldRenderHeight) - text_height);
-
-		}
 	}
 	
 	/*
