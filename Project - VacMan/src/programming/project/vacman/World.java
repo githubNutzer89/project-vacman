@@ -1,7 +1,9 @@
 package programming.project.vacman;
 
 import java.util.ArrayList;
-import programming.project.vacman.gameobjects.Cookie;
+import java.util.Random;
+
+import programming.project.vacman.gameobjects.Collectable;
 import programming.project.vacman.gameobjects.GameObject;
 import programming.project.vacman.gameobjects.GameObject.Direction;
 import programming.project.vacman.gameobjects.Ghost;
@@ -25,7 +27,7 @@ public class World{
 	public static final int WORLD_HEIGHT = 14;
 	
 	//Timer
-	float timer;
+	private float timer;
 	
 	//The score for collected coins
 	public int score;
@@ -36,7 +38,8 @@ public class World{
 	//The GameObjects
 	public VacMan vacMan;
 	public ArrayList<WallPart> wallParts;
-	public ArrayList<Cookie> cookies;
+	public ArrayList<Collectable> cookies;
+	public ArrayList<Collectable> injections;
 	public ArrayList<Ghost> ghosts;
 
 	//The Ghosts
@@ -62,7 +65,8 @@ public class World{
 	 */
 	private void init() {
 		wallParts = new ArrayList<WallPart>();
-		cookies = new ArrayList<Cookie>();
+		cookies = new ArrayList<Collectable>();
+		injections = new ArrayList<Collectable>();
 		ghosts = new ArrayList<Ghost>();
 		
 		//The RGB value
@@ -95,12 +99,12 @@ public class World{
 					wallPart.setStatus(Status.GATE);
 					wallParts.add(wallPart);
 					//TODO Implement different collision behavior for different types of WallParts
-					//gameStaticObjects[i][j] = wallPart; //Uncomment would make the ghosts considering the gate as wall so they don't move 
+					gameStaticObjects[i][j] = wallPart; //Uncomment would make the ghosts considering the gate as wall so they don't move 
 				}
 				
 				//Cookie
 				if(BlockType.COOKIE.sameColor(rgb)) {
-					Cookie cookie = new Cookie();
+					Collectable cookie = new Collectable();
 					cookie.setPos(i, j);
 					cookies.add(cookie);
 					gameStaticObjects[i][j] = cookie;
@@ -108,11 +112,10 @@ public class World{
 				
 				//Injection
 				if(BlockType.INJECTION.sameColor(rgb)) {
-					Cookie cookie = new Cookie();
-					cookie.setPos(i, j);
-					cookie.setInjection(true);
-					cookies.add(cookie);
-					gameStaticObjects[i][j] = cookie;
+					Collectable injection = new Collectable();
+					injection.setPos(i, j);
+					injections.add(injection);
+					gameStaticObjects[i][j] = injection;
 				}
 				
 				//Vacman
@@ -137,16 +140,16 @@ public class World{
 		//(target is the position where the ghost is supposed to go to)
 		blinky = ghosts.get(0);
 		blinky.setType(Type.BLINKY);
-		blinky.setTarget(new Vector2D(0, 0));
+		//blinky.setTarget(new Vector2D(0, 0));
 		pinky = ghosts.get(1);
 		pinky.setType(Type.PINKY);
-		pinky.setTarget(new Vector2D(28, 0));
+		//pinky.setTarget(new Vector2D(28, 0));
 		inky = ghosts.get(2);
 		inky.setType(Type.INKY);
-		inky.setTarget(new Vector2D(28, 14));
+		//inky.setTarget(new Vector2D(28, 14));
 		clyde = ghosts.get(3);
 		clyde.setType(Type.CLYDE);
-		clyde.setTarget(new Vector2D(0, 14));
+		//clyde.setTarget(new Vector2D(0, 14));
 	}
 	
 	/*
@@ -160,54 +163,192 @@ public class World{
 			//Increase timer
 			timer += deltaTime;
 			
+			//Reset score
+			score = 0;
+			
 			//TODO Use gameStaticObjects[i][j] for collision detection instead of iterating through all GameObjects
 			vacMan.update(deltaTime);
 			
-			score = 0;
-			
-			//Collision Detection for all coins with VacMan
-			for(Cookie cookie : cookies) {
+			//Collision Detection for all cookies with VacMan
+			for(Collectable cookie : cookies) {
 				cookie.isCollided(vacMan);
 				
 				//Counts the collected cookies
 				if(cookie.isCollected()) {
 					score++;
-					
-					//If there was an injection collected
-					if(cookie.isInjection()) {
-						setGhostsFrigthened();
-						cookie.setInjection(false);
-					}
+				}
+			}
+			
+			//Collision Detection for all injections with VacMan
+			for(Collectable injection : injections) {
+				boolean isCollected = injection.isCollected();
+				
+				//If there was just an injection collected, set ghost to FRIGTHENED
+				if(injection.isCollided(vacMan) != isCollected && isCollected == false) {
+					setGhostsFrigthened();
+				}		
+				
+				//Count score for collected injection
+				if(injection.isCollected()) {
+					score++;
 				}
 			}
 			
 			//Moving the ghosts
 			for(Ghost ghost : ghosts) {
-				//Chose algorithm for the ghosts (basically starting with SCATTER, after 7s switching to CHASE for 20s
-				//and then back to SCATTER and so on), if not FREIGHTEND or EATEN
-				if(ghost.getMode() != Mode.FRIGHTEND && ghost.getMode() != Mode.EATEN) {
-					if(timer % 27 >= 0 && timer % 27 <= 7 && timer <= 88) {
-						//Scatter mode
-						ghost.setMode(Mode.SCATTER);
-					}else {
-						//Chase mode
-						ghost.setMode(Mode.CHASE);
-					}
+				switch(ghost.getMode()) {
+					case WAITING:
+						switch(ghost.getType()) {
+							case BLINKY:
+								ghost.setMode(Mode.MOVE_OUT);
+								break;
+							case PINKY:
+								if(timer >= 2) {
+									ghost.setMode(Mode.MOVE_OUT);
+								}
+								break;
+							case INKY:
+								if(timer >= 5) {
+									ghost.setMode(Mode.MOVE_OUT);
+								}
+								break;
+							case CLYDE:
+								if(timer >= 10) {
+									ghost.setMode(Mode.MOVE_OUT);
+								}
+								break;
+						}
+						break;
+					case MOVE_OUT:
+						if(ghost.isAtTarget()) {
+							//Chose algorithm for the ghosts (basically starting with SCATTER, after 7s switching to CHASE for 20s
+							//and then back to SCATTER and so on)
+							if(timer % 27 >= 0 && timer % 27 <= 7 && timer <= 88) {
+								//Scatter mode
+								ghost.setMode(Mode.SCATTER);
+							}else {
+								//Chase mode
+								ghost.setMode(Mode.CHASE);
+							}
+						}
+						break;
+					case MOVE_IN:
+						if(ghost.isAtTarget()) {
+							ghost.turnAround();
+							ghost.setMode(Mode.MOVE_OUT);
+						}
+						break;
+					case SCATTER:
+						if(timer % 27 >= 0 && timer % 27 <= 7 && timer <= 88) {
+							//Scatter mode, do nothing, already in
+						}else {
+							//Chase mode
+							ghost.setMode(Mode.CHASE);
+							ghost.turnAround();
+						}
+						break;
+					case CHASE:
+						//Chose algorithm for the ghosts (basically starting with SCATTER, after 7s switching to CHASE for 20s
+						//and then back to SCATTER and so on)
+						if(timer % 27 >= 0 && timer % 27 <= 7 && timer <= 88) {
+							//Switch to Scatter mode
+							ghost.setMode(Mode.SCATTER);
+						}else {
+							//Execute Chase mode
+							switch(ghost.getType()) {
+								case BLINKY:
+									ghost.setTarget(vacMan.getPos());
+									break;
+								case PINKY:
+									switch(vacMan.getDirection()) {
+										case UP:
+											ghost.setTarget(vacMan.getPos().sub(new Vector2D(0, -4)));
+											break;
+										case DOWN:
+											ghost.setTarget(vacMan.getPos().sub(new Vector2D(0, 4)));
+											break;
+										case LEFT:
+											ghost.setTarget(vacMan.getPos().sub(new Vector2D(-4, 0)));
+											break;
+										case RIGHT:
+											ghost.setTarget(vacMan.getPos().sub(new Vector2D(4, 0)));
+											break;
+										}
+									break;
+								case INKY:
+									switch(vacMan.getDirection()) {
+										case UP:
+											ghost.setTarget(vacMan.getPos().sub(new Vector2D(0, -2)));
+											break;
+										case DOWN:
+											ghost.setTarget(vacMan.getPos().sub(new Vector2D(0, 2)));
+											break;
+										case LEFT:
+											ghost.setTarget(vacMan.getPos().sub(new Vector2D(-2, 0)));
+											break;
+										case RIGHT:
+											ghost.setTarget(vacMan.getPos().sub(new Vector2D(2, 0)));
+											break;
+									}
+									
+									//TODO Very confusing, break it off. Basically it takes the position 2 tiles in front of VacMan, calculates a vector from that position to Blinky and then turns it by 180°
+									ghost.setTarget(ghost.getTarget().getVectorTo(blinky.getPos()).flipVec().add(ghost.getTarget()));
+									
+									break;
+								case CLYDE:
+									if(ghost.getPos().getVectorTo(vacMan.getPos()).getLength() >= 8) {
+										ghost.setTarget(vacMan.getPos());
+									}else {
+										ghost.setTarget(Ghost.SCATTER_TGT_CLYDE);
+									}
+									break;
+							}
+						}
+						break;
+					case FRIGHTEND:
+						if(!ghost.isStillFrightened()) {
+							//Chose algorithm for the ghosts (basically starting with SCATTER, after 7s switching to CHASE for 20s
+							//and then back to SCATTER and so on)
+							if(timer % 27 >= 0 && timer % 27 <= 7 && timer <= 88) {
+								//Scatter mode
+								ghost.setMode(Mode.SCATTER);
+							}else {
+								//Chase mode
+								ghost.setMode(Mode.CHASE);
+							}
+						}
+						break;
+					case EATEN:
+						if(ghost.isAtTarget()) {
+							ghost.setMode(Mode.MOVE_IN);
+						}
+						break;
 				}
 				
 				// Check whether {@code VacMan} collides with {@code Ghost}
 				if (vacMan.isCollided(ghost)) {
-					if (vacMan.getLives() > 0) { // If VacMan is still alive, respawn
-						timer = 0;
-						resetVacMan();
-						resetGhosts();
-					}else {
-						isGameOver = true;
+					if(ghost.getMode() != Mode.FRIGHTEND && ghost.getMode() != Mode.EATEN) {
+						if (vacMan.getLives() > 0) { // If VacMan is still alive, respawn
+							timer = 0;
+							resetVacMan();
+							resetGhosts();
+						}else {
+							isGameOver = true;
+						}
 					}
 				}
 				
+				ghost.isCollided(vacMan);
+				
+				//System.out.println(timer + ": Typ: " + ghost.getType() + " Mode: " + ghost.getMode() + " Target: " + ghost.getTarget().getX() + ", " + ghost.getTarget().getY() + " CurrentTile: " + ghost.getCurrentTile().getX() + ", " + ghost.getCurrentTile().getY());
+				
 				if(!ghost.isOnTheMove()) {
-					ghost.setDirection(getNewDirection(ghost));
+					if(ghost.getMode() == Mode.FRIGHTEND) {
+						ghost.setDirection(getNewDirection(ghost, true));
+					}else {
+						ghost.setDirection(getNewDirection(ghost, false));
+					}
+					
 					ghost.moveOneTile();
 				}
 				
@@ -232,7 +373,7 @@ public class World{
 	 */
 	private void setGhostsFrigthened() {
 		for(Ghost ghost : ghosts) {
-			if(ghost.getMode() != Mode.EATEN) {
+			if(ghost.getMode() == Mode.SCATTER || ghost.getMode() == Mode.CHASE) {
 				ghost.setMode(Mode.FRIGHTEND);
 			}
 		}
@@ -252,7 +393,7 @@ public class World{
 		// TODO Reset ghosts algorithm.
 		// TODO One ghost doesn't leave the house after VacMan died.
 		for(Ghost ghost : ghosts) {
-			ghost.setPos((int) ghost.getSpawnPos().getX(), (int) ghost.getSpawnPos().getY());
+			ghost.resetGhost();
 		}
 	}
 	
@@ -269,13 +410,17 @@ public class World{
 	 * @param ghost The ghost for which the new direction is calculated for.
 	 * @return Returns the new direction the ghost should move to.
 	 */
-	private Direction getNewDirection(Ghost ghost) {
+	private Direction getNewDirection(Ghost ghost, boolean isRandom) {
 		ArrayList<Direction> list = new ArrayList<Direction>();
 		Direction lastDirection = ghost.getDirection();
 		Vector2D pos;
 		
 		//If there is no wall blocking a specific direction add it to the list
 		if(!(gameStaticObjects[(int)ghost.getCurrentTile().getX()][(int)ghost.getCurrentTile().getY() - 1] instanceof WallPart)) {
+			list.add(Direction.UP);
+		}else if(((WallPart) gameStaticObjects[(int)ghost.getCurrentTile().getX()][(int)ghost.getCurrentTile().getY() - 1]).getStatus() == Status.GATE) {
+			//Only exception is the gate
+			//TODO Looks weird to have exactly the same code in if and else but otherwise I can't ensure the cast to be correct
 			list.add(Direction.UP);
 		}
 		
@@ -284,6 +429,10 @@ public class World{
 		}
 		
 		if(!(gameStaticObjects[(int)ghost.getCurrentTile().getX()][(int)ghost.getCurrentTile().getY() + 1] instanceof WallPart)) {
+			list.add(Direction.DOWN);
+		}else if(((WallPart) gameStaticObjects[(int)ghost.getCurrentTile().getX()][(int)ghost.getCurrentTile().getY() + 1]).getStatus() == Status.GATE && ghost.getMode() == Mode.MOVE_IN) {
+			//Only exception is the gate
+			//TODO Looks weird to have exactly the same code in if and else but otherwise I can't ensure the cast to be correct
 			list.add(Direction.DOWN);
 		}
 		
@@ -299,6 +448,12 @@ public class World{
 		//If there is only one direction left return it
 		if(list.size() == 1) {
 			return list.get(0); 
+		}
+		
+		//If a random direction is requested
+		if(isRandom) {
+			Random rnd = new Random();
+			return list.get(rnd.nextInt(list.size()));
 		}
 		
 		//Otherwise determine the shortest direction for each option

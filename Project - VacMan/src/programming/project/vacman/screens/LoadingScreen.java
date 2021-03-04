@@ -37,11 +37,43 @@ public class LoadingScreen extends Screen{
 			Assets.wallPartGate = ImageIO.read(new File("img/wallpart_gate.png"));
 			Assets.mainMenu = ImageIO.read(new File("img/main_menu.png"));
 			Assets.lvl1 = ImageIO.read(new File("img/lvl1.png"));
-			Assets.coin = ImageIO.read(new File("img/coin.png"));
+			Assets.cookie = ImageIO.read(new File("img/coin.png"));
+			Assets.injection = ImageIO.read(new File("img/injection.png"));
+			
 			Assets.vacman_right = ImageIO.read(new File("img/vacman_right.png"));
 			Assets.vacman_left = ImageIO.read(new File("img/vacman_left.png"));
 			Assets.vacman_up = ImageIO.read(new File("img/vacman_up.png"));
 			Assets.vacman_down = ImageIO.read(new File("img/vacman_down.png"));
+			
+			Assets.blinky_right = ImageIO.read(new File("img/blinky_right.png"));
+			Assets.blinky_left = ImageIO.read(new File("img/blinky_left.png"));
+			Assets.blinky_up = ImageIO.read(new File("img/blinky_up.png"));
+			Assets.blinky_down = ImageIO.read(new File("img/blinky_down.png"));
+			
+			Assets.pinky_right = ImageIO.read(new File("img/pinky_right.png"));
+			Assets.pinky_left = ImageIO.read(new File("img/pinky_left.png"));
+			Assets.pinky_up = ImageIO.read(new File("img/pinky_up.png"));
+			Assets.pinky_down = ImageIO.read(new File("img/pinky_down.png"));
+			
+			Assets.inky_right = ImageIO.read(new File("img/inky_right.png"));
+			Assets.inky_left = ImageIO.read(new File("img/inky_left.png"));
+			Assets.inky_up = ImageIO.read(new File("img/inky_up.png"));
+			Assets.inky_down = ImageIO.read(new File("img/inky_down.png"));
+			
+			Assets.clyde_right = ImageIO.read(new File("img/clyde_right.png"));
+			Assets.clyde_left = ImageIO.read(new File("img/clyde_left.png"));
+			Assets.clyde_up = ImageIO.read(new File("img/clyde_up.png"));
+			Assets.clyde_down = ImageIO.read(new File("img/clyde_down.png"));
+			
+			Assets.frightened_right = ImageIO.read(new File("img/frightened_right.png"));
+			Assets.frightened_left = ImageIO.read(new File("img/frightened_left.png"));
+			Assets.frightened_up = ImageIO.read(new File("img/frightened_up.png"));
+			Assets.frightened_down = ImageIO.read(new File("img/frightened_down.png"));
+			
+			Assets.eaten_right = ImageIO.read(new File("img/eaten_right.png"));
+			Assets.eaten_left = ImageIO.read(new File("img/eaten_left.png"));
+			Assets.eaten_up = ImageIO.read(new File("img/eaten_up.png"));
+			Assets.eaten_down = ImageIO.read(new File("img/eaten_down.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

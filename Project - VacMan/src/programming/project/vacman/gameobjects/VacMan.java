@@ -1,5 +1,7 @@
 package programming.project.vacman.gameobjects;
 
+import programming.project.vacman.gameobjects.Ghost.Mode;
+
 /* File: VacMan.java
  * -----------------------
  * A singleton class which represents VacMan. Takes care of collision handling between {@code VacMan} and {@code WallPart}s.
@@ -57,7 +59,9 @@ public class VacMan extends GameObject{
 					break;
 			}
 		} else if(obj instanceof Ghost) {		// Loses a live if collision with ghost.
-			this.lives --;
+			if(((Ghost) obj).getMode() != Mode.FRIGHTEND && ((Ghost) obj).getMode() != Mode.EATEN) {
+				this.lives --;
+			}
 		}
 	}
 	

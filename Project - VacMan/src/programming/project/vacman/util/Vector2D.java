@@ -89,6 +89,16 @@ public class Vector2D {
 	}
 	
 	/*
+	 * Subtracts a vector from the values of this one and returns a newly created {@code Vector2D}.
+	 * 
+	 * @param vec The {@code Vector2D} to be subtracted.
+	 * @return Returns a new {@code Vector2D} which represents the difference. 
+	 */
+	public Vector2D sub(Vector2D vec) {
+		return new Vector2D(x - vec.getX(), y - vec.getY());
+	}
+	
+	/*
 	 * Multiplies the vector with a scalar and returns the product as a new {@code Vector2D}.
 	 * 
 	 * @param val The scalar to be added.
@@ -126,5 +136,16 @@ public class Vector2D {
 	 */
 	public Vector2D getVectorTo(Vector2D vec) {
 		return new Vector2D(vec.getX() - x, vec.getY() - y);
+	}
+	
+	/*
+	 * Returns a vector from the position the current vector is pointing to towards
+	 * the position specified by the parameter {@code vec}.
+	 * 
+	 *  @param vec Position where the resulting vector is pointing to
+	 *  @return Vector from position of the current vector towards the position of {@code vec} 
+	 */
+	public Vector2D flipVec() {
+		return new Vector2D(x * -1, y * -1);
 	}
 }

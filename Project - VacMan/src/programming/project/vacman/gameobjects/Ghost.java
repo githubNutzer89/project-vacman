@@ -14,7 +14,8 @@ import programming.project.vacman.util.Vector2D;
  * permanently moving since it stops only for one frame.
  */
 public class Ghost extends GameObject{
-	private static final float VELOCITY = 4;
+	private static final float VELOCITY = 3;
+	private static final float EATEN_VELOCITY = 7;
 	
 	private Vector2D currentTile;
 	private Vector2D destinationTile;
@@ -23,10 +24,23 @@ public class Ghost extends GameObject{
 	private Mode mode;
 	private Type type;
 	
+	private float timer = 0;
+	
+	public static final Vector2D IN_FRONT_OF_HOUSE = new Vector2D(13, 1);
+	public static final Vector2D IN_HOUSE = new Vector2D(13, 3);
+	
+	public static final Vector2D SCATTER_TGT_BLINKY = new Vector2D(28, 0);
+	public static final Vector2D SCATTER_TGT_PINKY = new Vector2D(0, 0);
+	public static final Vector2D SCATTER_TGT_INKY = new Vector2D(28, 14);
+	public static final Vector2D SCATTER_TGT_CLYDE = new Vector2D(0, 14);
+	
 	/*
 	 * The four different modes a {@code Ghost} can have.
 	 */
 	public enum Mode{
+		WAITING,
+		MOVE_OUT,
+		MOVE_IN,
 		SCATTER,
 		CHASE,
 		FRIGHTEND,
@@ -48,13 +62,13 @@ public class Ghost extends GameObject{
 	 * Initializes a newly created {@code Ghost} object. 
 	 * 
 	 */
-	public Ghost() {
-		target = new Vector2D(0, 0);											//Set position to (0, 0)
+	public Ghost() {			
 		setVelocity(VELOCITY);													//Set velocity to the default value
-		mode = Mode.SCATTER;													//Default mode is SCATTER
+		mode = Mode.WAITING;													//Default mode is SCATTER
 		type = Type.BLINKY;														//Default type is BLINKY
-		destinationTile = new Vector2D((int)pos.getX(), (int)pos.getY());		//The destinationTile is set to (0, 0) 
-		currentTile = new Vector2D((int)pos.getX(), (int)pos.getY());			//The currentTile is set to (0, 0)
+		destinationTile = new Vector2D((int)pos.getX(), (int)pos.getY());		//The destinationTile is set to the current position 
+		currentTile = new Vector2D((int)pos.getX(), (int)pos.getY());			//The currentTile is set to the current position
+		target = new Vector2D((int)pos.getX(), (int)pos.getY());				//The target is set to the current position
 	}
 	
 	/*
@@ -68,6 +82,7 @@ public class Ghost extends GameObject{
 		super.setPos(x, y);
 		currentTile = new Vector2D((int)pos.getX(), (int)pos.getY());
 		destinationTile = new Vector2D((int)pos.getX(), (int)pos.getY());
+		target = new Vector2D((int)pos.getX(), (int)pos.getY());				//The target is set to the current position
 	}
 	
 	/*
@@ -89,6 +104,12 @@ public class Ghost extends GameObject{
 	 */
 	@Override
 	public void update(float deltaTime) {
+		if(mode == Mode.EATEN) {
+			setVelocity(EATEN_VELOCITY);
+		}else {
+			setVelocity(VELOCITY);
+		}
+		
 		//Using max(), min() to cover under-/overshoots
 		if(isOnTheMove()) {
 			switch(direction) {
@@ -105,7 +126,11 @@ public class Ghost extends GameObject{
 					pos.setX(Math.min(pos.getX() + speed * deltaTime, destinationTile.getX()));
 					break;
 			}
-		}		
+		}
+		
+		if(mode == Mode.FRIGHTEND) {
+			timer += deltaTime;
+		}
 	}
 	
 	/*
@@ -113,7 +138,7 @@ public class Ghost extends GameObject{
 	 * 
 	 */
 	public void moveOneTile() {
-		if(!isOnTheMove()) {
+		if(!isOnTheMove() && !target.isEqual(currentTile)) {
 			switch(direction) {
 				case UP:
 					destinationTile.setPos(new Vector2D(currentTile.getX(), currentTile.getY() - 1));
@@ -169,7 +194,35 @@ public class Ghost extends GameObject{
 	 * @param mode Determines which {@code Mode} the {@code Ghost} is in.
 	 */
 	public void setMode(Mode mode) {
-		this.mode = mode;
+		//It shouldn't be possible to set mode WAITING from outside
+		if(mode != Mode.WAITING) {
+			this.mode = mode;
+		}
+		
+		if(mode == Mode.MOVE_OUT || mode == Mode.EATEN) {
+			setTarget(IN_FRONT_OF_HOUSE);
+		}
+		
+		if(mode == Mode.SCATTER) {
+			switch(type) {
+				case BLINKY:
+					setTarget(SCATTER_TGT_BLINKY);
+					break;
+				case PINKY:
+					setTarget(SCATTER_TGT_PINKY);
+					break;
+				case INKY:
+					setTarget(SCATTER_TGT_INKY);
+					break;
+				case CLYDE:
+					setTarget(SCATTER_TGT_CLYDE);
+					break;
+				}
+		}
+		
+		if(mode == Mode.MOVE_IN) {
+			setTarget(IN_HOUSE);
+		}
 	}
 	
 	/*
@@ -179,6 +232,24 @@ public class Ghost extends GameObject{
 	 */
 	public Mode getMode() {
 		return mode;
+	}
+	
+	/*
+	 * Returns true if the ghost was frightened for less than 8s.
+	 * 
+	 * @return Returns true if the ghost was frightened for less than 8s.
+	 */
+	public boolean isStillFrightened() {
+		if(mode == Mode.FRIGHTEND) {
+			if(timer < 8) {
+				return true;
+			}else {
+				timer = 0;
+				return false;
+			}
+		}
+		
+		return false;
 	}
 	
 	/*
@@ -199,6 +270,10 @@ public class Ghost extends GameObject{
 		return type;
 	}
 	
+	public void turnAround() {
+		direction = direction.getOppositeDirection();
+	}
+	
 	/*
 	 * Checks if the {@code Ghost} is moving.
 	 * 
@@ -211,6 +286,27 @@ public class Ghost extends GameObject{
 			currentTile = new Vector2D(destinationTile.getX(), destinationTile.getY());
 			return false;
 		} 
+	}
+	
+	/*
+	 * Checks if the {@code Ghost} is at the target position.
+	 * 
+	 * @return {@code True} if the {@code Ghost} is at the target position otherwise {@code false}.
+	 */
+	public boolean isAtTarget() {
+		if(target.isEqual(pos)) {
+			return true;
+		}else {
+			return false;
+		} 
+	}
+	
+	/*
+	 * Resets the {@code Ghost} into the ghost house.
+	 */
+	public void resetGhost() {
+		setPos((int) getSpawnPos().getX(), (int) getSpawnPos().getY());
+		mode = Mode.WAITING;
 	}
 	
 	/*
@@ -237,6 +333,11 @@ public class Ghost extends GameObject{
 						pos.setY(obj.getPosY() - DIMENSION_Y);
 						break;
 				}
+			}
+		}else if(obj instanceof VacMan){
+			if(mode == Mode.FRIGHTEND) {
+				turnAround();
+				setMode(Mode.EATEN);
 			}
 		}
 	}
